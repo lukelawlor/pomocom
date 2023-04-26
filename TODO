@@ -1,0 +1,13 @@
+Pomocom To-Do List
+---
+
+Options in config files
+	interface
+	update_interval
+	show_controls
+
+Interface
+	Countdown w/ ANSI codes
+	Countdown w/ Ncurses interface
+
+
