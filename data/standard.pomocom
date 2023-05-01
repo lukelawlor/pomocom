@@ -1,0 +1,11 @@
+work time bro
+echo 0
+0m2s
+
+break time
+echo 1
+0m4s
+
+long break
+echo 2
+0m3s

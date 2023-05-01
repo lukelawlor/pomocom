@@ -4,10 +4,14 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <cstdio>
 #include <iostream>
 #include <thread>
 
 #include "ansi_term.hh"
+
+#define	SECTION_INFO_NAME_LEN	20
+#define	SECTION_INFO_CMD_LEN	20
 
 namespace pomocom
 {
@@ -21,8 +25,8 @@ namespace pomocom
 
 	// Info on each timing section
 	struct SectionInfo{
-		const char *name;
-		const char *cmd;
+		char name[SECTION_INFO_NAME_LEN];
+		char cmd[SECTION_INFO_CMD_LEN];
 		int secs;
 	};
 
@@ -61,12 +65,74 @@ namespace pomocom
 			.breaks_until_long_reset = 3,
 		},
 		.breaks_until_long = 3,
-		.section_info = {
-			{.name="work time", .cmd="echo 0", .secs=5},
-			{.name="break time", .cmd="echo 1", .secs=5},
-			{.name="long break", .cmd="echo 2", .secs=5},
-		},
+		// 
 	};
+
+	// Function from SoupDL 06 (spdl)
+	// Writes chars from *stream (including \0) into *dest
+	// Stops when the delim character is found, and doesn't include the delim in the string
+	// Returns the number of chars written to *dest minus 1, or -1 on error
+	int spdl_readstr(char *dest, const size_t len_max, const int delim, std::FILE *stream)
+	{
+		// Index of *dest to access next
+		int i = 0;
+
+		// Stop reading when i reaches this value
+		const int i_stop = len_max - 1;
+
+		// Current character being processed
+		int c;
+
+		// Reading loop
+		for (;;)
+		{
+			c = std::fgetc(stream);
+			if (c == delim)
+			{
+				dest[i] = '\0';
+				break;
+			}
+			if (c == EOF)
+			{
+				// Reading error
+				return -1;
+			}
+			dest[i] = c;
+			if (++i == i_stop)
+			{
+				// The max amount of chars was read and the end of the string was not found
+				dest[i] = '\0';
+				return -1;
+			}
+		}
+
+		// Success
+		return i;
+	}
+
+	// Returns nonzero on error
+	bool read_sections(const char *path)
+	{
+		std::FILE *fp = std::fopen(path, "r");
+		if (fp == nullptr)
+		{
+			std::fprintf(stderr, "whoops\n");
+			return 1;
+		}
+
+		// Get section data
+		for (int section_index = 0; section_index < SECTION_MAX; ++section_index)
+		{
+			SectionInfo &s = state.section_info[section_index];
+			spdl_readstr(reinterpret_cast<char *>(&s.name), SECTION_INFO_NAME_LEN, '\n', fp);
+			spdl_readstr(reinterpret_cast<char *>(&s.cmd), SECTION_INFO_CMD_LEN, '\n', fp);
+			int minutes, seconds;
+			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
+			s.secs = minutes * 60 + seconds;
+		}
+
+		return 0;
+	}
 }
 
 int main()
@@ -77,6 +143,9 @@ int main()
 	std::time_t time_end;
 
 	using namespace pomocom;
+
+	// Read in settings
+	pomocom::read_sections("./data/standard.pomocom");
 
 	// Current time section 
 	Section section = SECTION_WORK;
