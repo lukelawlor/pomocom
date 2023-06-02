@@ -1,10 +1,11 @@
 /*
- * main.cc does everything.
+ * pomocom.cc does everything. It contains the main function.
  */
 
 #include <chrono>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <thread>
 
@@ -15,6 +16,14 @@
 
 namespace pomocom
 {
+	// Generic exception codes
+	enum Exception{
+		EXCEPT_GENERIC,
+
+		// Input/output error
+		EXCEPT_IO,
+	};
+
 	// Timing sections
 	enum Section{
 		SECTION_WORK,
@@ -65,7 +74,7 @@ namespace pomocom
 			.breaks_until_long_reset = 3,
 		},
 		.breaks_until_long = 3,
-		// 
+		// section_info left uninitialized because it will be set when files are read
 	};
 
 	// Function from SoupDL 06 (spdl)
@@ -110,32 +119,70 @@ namespace pomocom
 		return i;
 	}
 
+	// TODO: get the proper home directory with code
+	const char *section_directory = "/home/cak/projects/pomocom/data/";
+
 	// Returns nonzero on error
-	bool read_sections(const char *path)
+	// Reads sections from the file at *path where *path is unaltered
+	bool read_sections_raw(const char *path)
 	{
 		std::FILE *fp = std::fopen(path, "r");
 		if (fp == nullptr)
 		{
-			std::fprintf(stderr, "whoops\n");
+			std::fprintf(stderr, "couldn't open pomo file \"%s\"\n", path);
 			return 1;
 		}
 
 		// Get section data
+#if 0
 		for (int section_index = 0; section_index < SECTION_MAX; ++section_index)
 		{
 			SectionInfo &s = state.section_info[section_index];
-			spdl_readstr(reinterpret_cast<char *>(&s.name), SECTION_INFO_NAME_LEN, '\n', fp);
-			spdl_readstr(reinterpret_cast<char *>(&s.cmd), SECTION_INFO_CMD_LEN, '\n', fp);
+			spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp);
+			spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
 			int minutes, seconds;
 			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
 			s.secs = minutes * 60 + seconds;
 		}
-
+#else
+		for (SectionInfo &s : state.section_info)
+		{
+			// Read in section data
+			spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp);
+			spdl_readstr(s.name, SECTION_INFO_CMD_LEN, '\n', fp);
+			int minutes, seconds;
+			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
+			s.secs = minutes * 60 + seconds;
+		}
+#endif
 		return 0;
+	}
+
+	// Returns nonzero on error
+	// Reads sections from the file at *path where *path is altered
+	bool read_sections(const char *path)
+	{
+		// Altering the path
+		std::string alt_path("");
+		if (std::strlen(path) >= 2 && path[0] == '.' && path[1] == '/')
+		{
+			// Path is relative
+			alt_path += (path + 2);
+		}
+		else
+		{
+			// Path is absolute
+			alt_path += section_directory;
+			alt_path += path;
+		}
+		alt_path += ".pomo";
+
+		// Actually loading the section data with the altered path
+		return read_sections_raw(alt_path.c_str());
 	}
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	// Times of current timing section
 	std::time_t time_start;
@@ -145,7 +192,28 @@ int main()
 	using namespace pomocom;
 
 	// Read in settings
-	pomocom::read_sections("./data/standard.pomocom");
+	if (argc == 1)
+	{
+		read_sections("standard");
+	}
+	else if (argc == 2)
+	{
+		read_sections(argv[1]);
+	}
+	else
+	{
+		std::fprintf(stderr, "wrong number of args provided\n");
+		return 1;
+	}
+
+	for (SectionInfo &s : state.section_info)
+	{
+		if (s.secs <= 0)
+		{
+			std::fprintf(stderr, "invalid card data found\n");
+			return 1;
+		}
+	}
 
 	// Current time section 
 	Section section = SECTION_WORK;

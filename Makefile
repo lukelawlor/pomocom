@@ -1,7 +1,7 @@
 # Makefile for Linux targeting Linux
 
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Wpedantic -std=c++20
+CXXFLAGS = -g -Wall -Wextra -Wpedantic -std=c++20
 DEPFLAGs = -MMD -MP
 LDFLAGS = -Wl,--copy-dt-needed-entries -lncursesw
 

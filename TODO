@@ -7,7 +7,6 @@ Options in config files
 	show_controls
 
 Interface
+	Conditional compilation of certain interfaces
 	Countdown w/ ANSI codes
 	Countdown w/ Ncurses interface
-
-
