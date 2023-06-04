@@ -1,0 +1,13 @@
+#+TITLE: Pomocom To-Do List
+* General
+- [ ] Get the home directory
+* Options in config files
+- [ ] interface
+- [ ] update_interval
+- [ ] show_controls
+* Interfaces
+- [ ] Conditional compilation of certain interfaces
+- [ ] Ncurses
+  - [ ] Countdown
+  - [ ] Controls
+  - [ ] Colors

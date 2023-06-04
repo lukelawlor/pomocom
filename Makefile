@@ -2,7 +2,7 @@
 
 CXX = g++
 CXXFLAGS = -g -Wall -Wextra -Wpedantic -std=c++20
-DEPFLAGs = -MMD -MP
+DEPFLAGS = -MMD -MP
 LDFLAGS = -Wl,--copy-dt-needed-entries -lncursesw
 
 BINNAME = pomocom
@@ -32,5 +32,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%
 clean:
 	rm $(BINPATH)
 	rm -rf $(BUILD_DIR)
+
+test:
+	@echo $(DEPS)
 
 -include $(DEPS)

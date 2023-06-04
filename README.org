@@ -1,0 +1,2 @@
+* Pomocom
+A simple and customizable pomodoro timer with multiple interfaces

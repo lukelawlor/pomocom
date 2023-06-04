@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "ansi_term.hh"
+#include "error.hh"
 
 #define	SECTION_INFO_NAME_LEN	20
 #define	SECTION_INFO_CMD_LEN	20
@@ -128,7 +129,7 @@ namespace pomocom
 		std::FILE *fp = std::fopen(path, "r");
 		if (fp == nullptr)
 		{
-			std::fprintf(stderr, "couldn't open pomo file \"%s\"\n", path);
+			PERR("couldn't open pomo file \"%s\"\n", path);
 			throw EXCEPT_IO;
 		}
 
@@ -188,7 +189,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		std::fprintf(stderr, "wrong number of args provided\n");
+		PERR("wrong number of args provided");
 		return 1;
 	}
 
@@ -196,7 +197,7 @@ int main(int argc, char **argv)
 	{
 		if (s.secs <= 0)
 		{
-			std::fprintf(stderr, "invalid card data found\n");
+			PERR("invalid card data found\n");
 			return 1;
 		}
 	}
@@ -249,10 +250,10 @@ int main(int argc, char **argv)
 		}
 		break;
 	case INTERFACE_NCURSES:
-		std::cerr << "ncurses interface not implemented yet\n";
+		PERR("ncurses interface not implemented yet");
 		abort();
 	default:
-		std::cerr << "unknown interface\n";
+		PERR("unknown interface");
 		abort();
 	}
 
