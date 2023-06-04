@@ -80,7 +80,7 @@ namespace pomocom
 	// Function from SoupDL 06 (spdl)
 	// Writes chars from *stream (including \0) into *dest
 	// Stops when the delim character is found, and doesn't include the delim in the string
-	// Returns the number of chars written to *dest minus 1, or -1 on error
+	// Returns the number of chars written to *dest minus 1
 	int spdl_readstr(char *dest, const size_t len_max, const int delim, std::FILE *stream)
 	{
 		// Index of *dest to access next
@@ -104,14 +104,14 @@ namespace pomocom
 			if (c == EOF)
 			{
 				// Reading error
-				return -1;
+				throw EXCEPT_IO;
 			}
 			dest[i] = c;
 			if (++i == i_stop)
 			{
 				// The max amount of chars was read and the end of the string was not found
 				dest[i] = '\0';
-				return -1;
+				throw EXCEPT_GENERIC;
 			}
 		}
 
@@ -122,45 +122,31 @@ namespace pomocom
 	// TODO: get the proper home directory with code
 	const char *section_directory = "/home/cak/projects/pomocom/data/";
 
-	// Returns nonzero on error
 	// Reads sections from the file at *path where *path is unaltered
-	bool read_sections_raw(const char *path)
+	void read_sections_raw(const char *path)
 	{
 		std::FILE *fp = std::fopen(path, "r");
 		if (fp == nullptr)
 		{
 			std::fprintf(stderr, "couldn't open pomo file \"%s\"\n", path);
-			return 1;
+			throw EXCEPT_IO;
 		}
 
 		// Get section data
-#if 0
-		for (int section_index = 0; section_index < SECTION_MAX; ++section_index)
+		for (SectionInfo &s : state.section_info)
 		{
-			SectionInfo &s = state.section_info[section_index];
+			// Read in section data
 			spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp);
 			spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
 			int minutes, seconds;
 			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
 			s.secs = minutes * 60 + seconds;
 		}
-#else
-		for (SectionInfo &s : state.section_info)
-		{
-			// Read in section data
-			spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp);
-			spdl_readstr(s.name, SECTION_INFO_CMD_LEN, '\n', fp);
-			int minutes, seconds;
-			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
-			s.secs = minutes * 60 + seconds;
-		}
-#endif
-		return 0;
 	}
 
 	// Returns nonzero on error
 	// Reads sections from the file at *path where *path is altered
-	bool read_sections(const char *path)
+	void read_sections(const char *path)
 	{
 		// Altering the path
 		std::string alt_path("");
@@ -178,7 +164,7 @@ namespace pomocom
 		alt_path += ".pomo";
 
 		// Actually loading the section data with the altered path
-		return read_sections_raw(alt_path.c_str());
+		read_sections_raw(alt_path.c_str());
 	}
 }
 
