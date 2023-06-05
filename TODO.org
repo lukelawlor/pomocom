@@ -1,6 +1,8 @@
 #+TITLE: Pomocom To-Do List
 * General
-- [ ] Get the home directory
+- [X] Get the home directory
+- [ ] Create directories that don't exist yet
+- [ ] Search for files in multiple directories in order
 * Options in config files
 - [ ] interface
 - [ ] update_interval

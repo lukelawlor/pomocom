@@ -23,6 +23,9 @@ namespace pomocom
 
 		// Input/output error
 		EXCEPT_IO,
+
+		// Bad memory allocation
+		EXCEPT_BAD_ALLOC,
 	};
 
 	// Timing sections
@@ -120,8 +123,38 @@ namespace pomocom
 		return i;
 	}
 
+	// Path to directory that config files are stored in
+	char *path_config;
+
 	// TODO: get the proper home directory with code
-	const char *section_directory = "/home/cak/projects/pomocom/data/";
+	// Path to directory that section files are stored in
+	char *path_section;
+
+	void set_paths()
+	{
+		// Path to home
+		char *path_home;
+
+		// Get path to home based on OS
+#ifdef	__linux__
+		path_home = std::getenv("HOME");
+#else
+#error "compilation target platform unknown"
+#endif
+
+		// Buffer used for manipulating strings
+		std::string buf("");
+
+		// Set path_config
+		buf += path_home;
+		buf += "/.config/pomocom/";
+		path_config = strdup(buf.c_str());
+		if (path_config == nullptr)
+			throw EXCEPT_BAD_ALLOC;
+		
+		// Set path_section
+		path_section = path_config;
+	}
 
 	// Reads sections from the file at *path where *path is unaltered
 	void read_sections_raw(const char *path)
@@ -129,7 +162,7 @@ namespace pomocom
 		std::FILE *fp = std::fopen(path, "r");
 		if (fp == nullptr)
 		{
-			PERR("couldn't open pomo file \"%s\"\n", path);
+			PERR("couldn't open pomo file \"%s\"", path);
 			throw EXCEPT_IO;
 		}
 
@@ -159,7 +192,7 @@ namespace pomocom
 		else
 		{
 			// Path is absolute
-			alt_path += section_directory;
+			alt_path += path_section;
 			alt_path += path;
 		}
 		alt_path += ".pomo";
@@ -178,28 +211,36 @@ int main(int argc, char **argv)
 
 	using namespace pomocom;
 
-	// Read in settings
-	if (argc == 1)
+	try
 	{
-		read_sections("standard");
-	}
-	else if (argc == 2)
-	{
-		read_sections(argv[1]);
-	}
-	else
-	{
-		PERR("wrong number of args provided");
-		return 1;
-	}
+		// Set strings to paths that pomocom looks for files in
+		set_paths();
 
-	for (SectionInfo &s : state.section_info)
-	{
-		if (s.secs <= 0)
+		// Read in settings
+		if (argc == 1)
+			read_sections("standard");
+		else if (argc == 2)
+			read_sections(argv[1]);
+		else
 		{
-			PERR("invalid card data found\n");
-			return 1;
+			PERR("wrong number of args provided");
+			throw EXCEPT_GENERIC;
 		}
+
+		// Check for valid card data
+		for (SectionInfo &s : state.section_info)
+		{
+			if (s.secs <= 0)
+			{
+				PERR("invalid card data found");
+				throw EXCEPT_GENERIC;
+			}
+		}
+	}
+	catch (...)
+	{
+		// Don't print any error messages if an uncaught exception occurs because in such case an error message will already be printed
+		return 1;
 	}
 
 	// Current time section 

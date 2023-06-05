@@ -15,6 +15,7 @@
 
 #ifdef	POMOCOM_PRINT_ERRORS
 	#define	PERR(...)	::pomocom::print_error_start();\
+				::std::fprintf(stderr, __FILE__ ":%d: ", __LINE__);\
 				::std::fprintf(stderr, __VA_ARGS__);\
 				::std::fputc('\n', stderr)
 #else
