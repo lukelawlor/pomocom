@@ -1,0 +1,11 @@
+work time
+echo 0
+25m0s
+
+break time
+echo 1
+5m0s
+
+long break
+echo 2
+15m0s

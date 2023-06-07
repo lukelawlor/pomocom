@@ -1,8 +1,11 @@
 #+TITLE: Pomocom To-Do List
 * General
 - [X] Get the home directory
-- [ ] Create directories that don't exist yet
+- [ ] Create installer
+  - [ ] Install the binary in a customizable directory
+  - [ ] Set up the config directory at ~/.config/pomocom
 - [ ] Search for files in multiple directories in order
+- [ ] Example alarm scripts
 * Options in config files
 - [ ] interface
 - [ ] update_interval

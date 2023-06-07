@@ -12,8 +12,8 @@
 #include "ansi_term.hh"
 #include "error.hh"
 
-#define	SECTION_INFO_NAME_LEN	20
-#define	SECTION_INFO_CMD_LEN	20
+#define	SECTION_INFO_NAME_LEN	100
+#define	SECTION_INFO_CMD_LEN	100
 
 namespace pomocom
 {
@@ -26,6 +26,9 @@ namespace pomocom
 
 		// Bad memory allocation
 		EXCEPT_BAD_ALLOC,
+
+		// Buffer overrun was stopped
+		EXCEPT_OVERRUN,
 	};
 
 	// Timing sections
@@ -84,14 +87,10 @@ namespace pomocom
 	// Function from SoupDL 06 (spdl)
 	// Writes chars from *stream (including \0) into *dest
 	// Stops when the delim character is found, and doesn't include the delim in the string
-	// Returns the number of chars written to *dest minus 1
-	int spdl_readstr(char *dest, const size_t len_max, const int delim, std::FILE *stream)
+	void spdl_readstr(char *dest, const int len_max, const int delim, std::FILE *stream)
 	{
 		// Index of *dest to access next
 		int i = 0;
-
-		// Stop reading when i reaches this value
-		const int i_stop = len_max - 1;
 
 		// Current character being processed
 		int c;
@@ -111,16 +110,13 @@ namespace pomocom
 				throw EXCEPT_IO;
 			}
 			dest[i] = c;
-			if (++i == i_stop)
+			if (++i == len_max - 1)
 			{
 				// The max amount of chars was read and the end of the string was not found
 				dest[i] = '\0';
-				throw EXCEPT_GENERIC;
+				throw EXCEPT_OVERRUN;
 			}
 		}
-
-		// Success
-		return i;
 	}
 
 	// Path to directory that config files are stored in
@@ -170,8 +166,25 @@ namespace pomocom
 		for (SectionInfo &s : state.section_info)
 		{
 			// Read in section data
-			spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp);
-			spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
+			try { spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp); }
+			catch (Exception &e)
+			{
+				if (e == EXCEPT_OVERRUN)
+				{
+					PERR("max chars read for section info name (over %d)", SECTION_INFO_NAME_LEN - 1);
+					throw e;
+				}
+			}
+			try { spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp); }
+			catch (Exception &e)
+			{
+				if (e == EXCEPT_OVERRUN)
+				{
+					PERR("max chars read for section info command (over %d)", SECTION_INFO_CMD_LEN - 1);
+					throw e;
+				}
+			}
+
 			int minutes, seconds;
 			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
 			s.secs = minutes * 60 + seconds;
