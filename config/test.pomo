@@ -1,11 +1,11 @@
 work time
 +msg.sh snare "work time"
-25m0s
+0m5s
 
 break time
 +msg.sh square "break time"
-5m0s
+0m5s
 
 long break time
 +msg.sh square "break time"
-15m0s
+0m2s

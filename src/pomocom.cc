@@ -119,12 +119,17 @@ namespace pomocom
 		}
 	}
 
+	// Paths
+	// These all end with /
+
 	// Path to directory that config files are stored in
 	char *path_config;
 
-	// TODO: get the proper home directory with code
 	// Path to directory that section files are stored in
 	char *path_section;
+
+	// Path to directory that script files are stored in
+	char *path_bin;
 
 	void set_paths()
 	{
@@ -148,8 +153,8 @@ namespace pomocom
 		if (path_config == nullptr)
 			throw EXCEPT_BAD_ALLOC;
 		
-		// Set path_section
-		path_section = path_config;
+		// Set other paths which are the same as the config path for now
+		path_bin = path_section = path_config;
 	}
 
 	// Reads sections from the file at *path where *path is unaltered
@@ -175,7 +180,31 @@ namespace pomocom
 					throw e;
 				}
 			}
-			try { spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp); }
+			try
+			{
+				int c = fgetc(fp);
+				if (c == '+')
+				{
+					// The program run in the command is in pomocom's bin directory
+
+					// Used to construct the proper path to the script
+					std::string buf(path_bin);
+
+					// Add the rest of the command name to buf
+					// The max # of chars to read here is shortened because s.cmd needs to contain the path to the script directory
+					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN - buf.size(), '\n', fp);
+					buf += s.cmd;
+
+					// Copy the final command from buf to s.cmd
+					std::strcpy(s.cmd, buf.c_str());
+				}
+				else
+				{
+					// The program run in the command is in the user's $PATH
+					ungetc(c, fp);
+					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
+				}
+			}
 			catch (Exception &e)
 			{
 				if (e == EXCEPT_OVERRUN)
