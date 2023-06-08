@@ -3,9 +3,11 @@
 # usage: ./msg.sh <sound name> <message>
 # example: ./msg.sh square hello
 
+config_dir=~/.config/pomocom
+
 # command to use to send the message
 message(){
-	echo "$1" | ~/.config/pomocom/msg_dzen.sh &
+	echo "$1" | $config_dir/msg_dzen.sh &
 }
 
 # command to use to play a sound
@@ -15,8 +17,8 @@ sound(){
 
 # play the sound
 case $1 in
-	square) sound ~/misc/snd/square.wav ;;
-	snare) sound ~/misc/snd/snare.wav ;;
+	square) sound $config_dir/square.wav ;;
+	snare) sound $config_dir/snare.wav ;;
 	* ) echo "unknown sound" ;;
 esac
 

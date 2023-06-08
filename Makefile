@@ -1,11 +1,11 @@
 # Makefile for Linux targeting Linux
 
-CXX = g++
-CXXFLAGS = -g -Wall -Wextra -Wpedantic -std=c++20
+include config.mk
+
+CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -std=c++20
 DEPFLAGS = -MMD -MP
 LDFLAGS = -Wl,--copy-dt-needed-entries -lncursesw
 
-BINNAME = pomocom
 BINPATH = ./$(BINNAME)
 
 SRC_DIR = ./src
@@ -27,13 +27,21 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
 
 .DELETE_ON_ERROR:
-.PHONY: clean
+.PHONY: clean install uninstall
 
 clean:
 	rm $(BINPATH)
 	rm -rf $(BUILD_DIR)
 
-test:
-	@echo $(DEPS)
+install: all
+	mkdir -p $(INSTALL_DIR)
+	cp $(BINPATH) $(INSTALL_DIR)/$(BINNAME)
+	strip $(INSTALL_DIR)/$(BINNAME)
+	mkdir -p ~/.config/pomocom
+	cp ./config/* ~/.config/pomocom/
+
+uninstall:
+	rm $(INSTALL_DIR)/$(BINNAME)
+	rm -r ~/.config/pomocom
 
 -include $(DEPS)
