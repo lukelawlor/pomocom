@@ -15,10 +15,12 @@
 #define	POMOCOM_OUTPUT_PREFIX	"pomocom: "
 
 #ifdef	POMOCOM_PRINT_ERRORS
-	#define	PERR(...)	::pomocom::print_error_start();\
+	#define	PERR(...)	do{\
+				::pomocom::print_error_start();\
 				::std::fprintf(stderr, __FILE__ ":%d: ", __LINE__);\
 				::std::fprintf(stderr, __VA_ARGS__);\
-				::std::fputc('\n', stderr)
+				::std::fputc('\n', stderr);\
+				}while(0)
 #else
 	#define	PERR(...)	POMOCOM_NOTHING()
 #endif

@@ -21,18 +21,13 @@ namespace pomocom
 	// Reads sections from the file at *path where *path is unaltered
 	static void read_sections_raw(const char *path)
 	{
-		// TODO: make sure the file is closed when the function exits. maybe use a smart pointer?
-		std::FILE *fp = std::fopen(path, "r");
-		if (fp == nullptr)
-		{
-			PERR("couldn't open pomo file \"%s\"", path);
-			throw EXCEPT_IO;
-		}
+		SmartFilePtr sfp(path, "r");
+		auto &fp = sfp.m_fp;
 
 		// Get section data
 		for (SectionInfo &s : state.section_info)
 		{
-			// Read in section data
+			// Read in section name
 			try { spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp); }
 			catch (Exception &e)
 			{
@@ -42,6 +37,8 @@ namespace pomocom
 					throw e;
 				}
 			}
+
+			// Read in section command
 			try
 			{
 				int c = fgetc(fp);
@@ -76,10 +73,10 @@ namespace pomocom
 				}
 			}
 
+			// Read in section duration
 			int minutes, seconds;
 			if (std::fscanf(fp, "%dm%ds\n", &minutes, &seconds) != 2)
 				throw EXCEPT_IO;
-
 			s.secs = minutes * 60 + seconds;
 		}
 	}
@@ -105,6 +102,19 @@ namespace pomocom
 
 		// Actually loading the section data with the altered path
 		read_sections_raw(alt_path.c_str());
+	}
+
+	// Used to switch sections in interface code
+	void switch_section(Section new_section)
+	{
+		// Change section
+		state.current_section = new_section;
+
+		// Call section command
+		char *cmd = state.section_info[new_section].cmd;
+		int exit_code = std::system(cmd);
+		if (exit_code)
+			PERR("section command \"%s\" exited with nonzero exit code %d", cmd, exit_code);
 	}
 }
 
@@ -149,25 +159,26 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// Current time section 
-	Section section = SECTION_WORK;
-
 	// Breaks left until a long break
 	switch (state.settings.interface)
 	{
 	case INTERFACE_ANSI:
 		for (;;)
 		{
+			// Reference to info on the current section
+			SectionInfo &si = state.section_info[state.current_section];
+
 			// Print the pomocom text
 			std::cout << AT_CLEAR;
 			std::cout << "pomocom:\n";
 			
 			// Print the section name
-			std::cout << state.section_info[section].name << '\n';
+			std::cout << si.name << '\n';
 
 			// Start the timing section
 			time_start = std::time(nullptr);
-			time_end = time_start + state.section_info[section].secs;
+			time_end = time_start + si.secs;
+
 			while ((time_current = std::time(nullptr)) < time_end)
 			{
 				// Print the time remaining
@@ -179,22 +190,18 @@ int main(int argc, char **argv)
 				std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
 			}
 
-			// TODO: make this macro stop generating warnings
-			// Switch to the next timing section
-			#define	SWITCH_SECTION(new_section)	do{section = new_section;\
-								std::system(state.section_info[new_section].cmd);}while(0)
-			if (section == SECTION_WORK)
+			if (state.current_section == SECTION_WORK)
 			{
 				if (--state.breaks_until_long == 0)
 				{
 					state.breaks_until_long = state.settings.breaks_until_long_reset;
-					SWITCH_SECTION(SECTION_BREAK_LONG);
+					switch_section(SECTION_BREAK_LONG);
 				}
 				else
-					SWITCH_SECTION(SECTION_BREAK);
+					switch_section(SECTION_BREAK);
 			}
 			else
-				SWITCH_SECTION(SECTION_WORK);
+				switch_section(SECTION_WORK);
 		}
 		break;
 	case INTERFACE_NCURSES:

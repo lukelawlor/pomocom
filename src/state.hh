@@ -4,15 +4,21 @@
 
 #pragma once
 
-#include "pomocom.hh"
-#include "settings.hh"
+#include "pomocom.hh"	// For Section and SectionInfo
+#include "settings.hh"	// For ProgramSettings
 
 namespace pomocom
 {
 	// Global state
 	struct ProgramState{
 		ProgramSettings settings;
+
+		// Current section being timed
+		Section current_section;
+
+		// # of breaks left until long break
 		int breaks_until_long;
+
 		SectionInfo section_info[SECTION_MAX];
 	};
 

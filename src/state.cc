@@ -20,9 +20,10 @@ namespace pomocom
 			.update_interval = 1,
 			.show_controls = false,
 			.breaks_until_long_reset = 3,
+			// paths left uninitialized because they're initialized by set_paths()
 		},
+		.current_section = SECTION_WORK,
 		.breaks_until_long = 3,
-		// paths left uninitialized because they're initialized by set_paths()
 		// section_info left uninitialized because it will be set when files are read
 	};
 
