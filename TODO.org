@@ -3,11 +3,15 @@
 - [X] Get the home directory
 - [X] Example alarm scripts
 - [X] Executing commands from specific pomocom bin directory separate from $PATH
-- [ ] Create installer
-  - [ ] Install the binary in a customizable directory
-  - [ ] Set up the config directory at ~/.config/pomocom
-- [ ] Search for files in multiple directories in order
+- [X] Create installer
+  - [X] Install the binary in a customizable directory
+  - [X] Set up the config directory at ~/.config/pomocom
+- [X] Split up contents in pomocom.cc
+- [ ] Reading in config file options
+  - [ ] Through comfig files
+  - [ ] Through command line args
 - [ ] Show pomo file name in output
+- [ ] Search for files in multiple directories in order
 * Options in config files
 - [ ] interface
 - [ ] update_interval
@@ -17,4 +21,7 @@
 - [ ] Ncurses
   - [ ] Countdown
   - [ ] Controls
+    - [ ] Pausing
+    - [ ] Skipping to the next section
+    - [ ] Enabling/disabling pauses between sections
   - [ ] Colors

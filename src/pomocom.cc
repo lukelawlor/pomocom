@@ -1,165 +1,27 @@
 /*
- * pomocom.cc does everything. It contains the main function.
+ * pomocom.cc contains the main function and section and timing code.
  */
 
-#include <chrono>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
+#include <chrono>	// For sleeping for a specified duration
+#include <cstdlib>	// For std::time()
+#include <cstring>	// For std::strcpy() and std::strlen()
+#include <cstdio>	// For std::FILE and std::fopen
 #include <iostream>
-#include <thread>
+#include <thread>	// For sleeping
 
 #include "ansi_term.hh"
 #include "error.hh"
-
-#define	SECTION_INFO_NAME_LEN	100
-#define	SECTION_INFO_CMD_LEN	100
+#include "exceptions.hh"
+#include "fileio.hh"
+#include "pomocom.hh"
+#include "state.hh"
 
 namespace pomocom
 {
-	// Generic exception codes
-	enum Exception{
-		EXCEPT_GENERIC,
-
-		// Input/output error
-		EXCEPT_IO,
-
-		// Bad memory allocation
-		EXCEPT_BAD_ALLOC,
-
-		// Buffer overrun was stopped
-		EXCEPT_OVERRUN,
-	};
-
-	// Timing sections
-	enum Section{
-		SECTION_WORK,
-		SECTION_BREAK,
-		SECTION_BREAK_LONG,
-		SECTION_MAX,
-	};
-
-	// Info on each timing section
-	struct SectionInfo{
-		char name[SECTION_INFO_NAME_LEN];
-		char cmd[SECTION_INFO_CMD_LEN];
-		int secs;
-	};
-
-	// Program interface types
-	enum ProgramInterface{
-		// Interface that uses ANSI terminal escape codes
-		INTERFACE_ANSI,
-
-		// Interface using the ncurses library
-		INTERFACE_NCURSES,
-	};
-
-	// Program settings
-	struct ProgramSettings{
-		ProgramInterface interface;
-
-		// # of seconds to wait between updating the screen
-		int update_interval;
-
-		bool show_controls : 1;
-
-		// Number of breaks until a long break
-		int breaks_until_long_reset;
-	};
-
-	// Global state
-	struct ProgramState{
-		ProgramSettings settings;
-		int breaks_until_long;
-		SectionInfo section_info[SECTION_MAX];
-	} state = {
-		.settings = {
-			.interface = INTERFACE_ANSI,
-			.update_interval = 1,
-			.show_controls = false,
-			.breaks_until_long_reset = 3,
-		},
-		.breaks_until_long = 3,
-		// section_info left uninitialized because it will be set when files are read
-	};
-
-	// Function from SoupDL 06 (spdl)
-	// Writes chars from *stream (including \0) into *dest
-	// Stops when the delim character is found, and doesn't include the delim in the string
-	void spdl_readstr(char *dest, const int len_max, const int delim, std::FILE *stream)
-	{
-		// Index of *dest to access next
-		int i = 0;
-
-		// Current character being processed
-		int c;
-
-		// Reading loop
-		for (;;)
-		{
-			c = std::fgetc(stream);
-			if (c == delim)
-			{
-				dest[i] = '\0';
-				break;
-			}
-			if (c == EOF)
-			{
-				// Reading error
-				throw EXCEPT_IO;
-			}
-			dest[i] = c;
-			if (++i == len_max - 1)
-			{
-				// The max amount of chars was read and the end of the string was not found
-				dest[i] = '\0';
-				throw EXCEPT_OVERRUN;
-			}
-		}
-	}
-
-	// Paths
-	// These all end with /
-
-	// Path to directory that config files are stored in
-	char *path_config;
-
-	// Path to directory that section files are stored in
-	char *path_section;
-
-	// Path to directory that script files are stored in
-	char *path_bin;
-
-	void set_paths()
-	{
-		// Path to home
-		char *path_home;
-
-		// Get path to home based on OS
-#ifdef	__linux__
-		path_home = std::getenv("HOME");
-#else
-#error "compilation target platform unknown"
-#endif
-
-		// Buffer used for manipulating strings
-		std::string buf("");
-
-		// Set path_config
-		buf += path_home;
-		buf += "/.config/pomocom/";
-		path_config = strdup(buf.c_str());
-		if (path_config == nullptr)
-			throw EXCEPT_BAD_ALLOC;
-		
-		// Set other paths which are the same as the config path for now
-		path_bin = path_section = path_config;
-	}
-
 	// Reads sections from the file at *path where *path is unaltered
-	void read_sections_raw(const char *path)
+	static void read_sections_raw(const char *path)
 	{
+		// TODO: make sure the file is closed when the function exits. maybe use a smart pointer?
 		std::FILE *fp = std::fopen(path, "r");
 		if (fp == nullptr)
 		{
@@ -188,7 +50,7 @@ namespace pomocom
 					// The program run in the command is in pomocom's bin directory
 
 					// Used to construct the proper path to the script
-					std::string buf(path_bin);
+					std::string buf(state.settings.paths.bin);
 
 					// Add the rest of the command name to buf
 					// The max # of chars to read here is shortened because s.cmd needs to contain the path to the script directory
@@ -215,14 +77,16 @@ namespace pomocom
 			}
 
 			int minutes, seconds;
-			std::fscanf(fp, "%dm%ds\n", &minutes, &seconds);
+			if (std::fscanf(fp, "%dm%ds\n", &minutes, &seconds) != 2)
+				throw EXCEPT_IO;
+
 			s.secs = minutes * 60 + seconds;
 		}
 	}
 
 	// Returns nonzero on error
 	// Reads sections from the file at *path where *path is altered
-	void read_sections(const char *path)
+	static void read_sections(const char *path)
 	{
 		// Altering the path
 		std::string alt_path("");
@@ -234,7 +98,7 @@ namespace pomocom
 		else
 		{
 			// Path is absolute
-			alt_path += path_section;
+			alt_path += state.settings.paths.section;
 			alt_path += path;
 		}
 		alt_path += ".pomo";
@@ -315,6 +179,7 @@ int main(int argc, char **argv)
 				std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
 			}
 
+			// TODO: make this macro stop generating warnings
 			// Switch to the next timing section
 			#define	SWITCH_SECTION(new_section)	do{section = new_section;\
 								std::system(state.section_info[new_section].cmd);}while(0)

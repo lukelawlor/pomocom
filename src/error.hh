@@ -2,8 +2,9 @@
  * error.hh contains functions for printing error messages.
  */
 
-// For fprintf()
-#include <cstdio>
+#pragma once
+
+#include <cstdio>	// For std::fprintf()
 
 // If defined, print errors
 #define	POMOCOM_PRINT_ERRORS
