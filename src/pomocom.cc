@@ -7,7 +7,10 @@
 #include <cstring>	// For std::strcpy() and std::strlen()
 #include <cstdio>	// For std::FILE and std::fopen
 #include <iostream>
+#include <mutex>
 #include <thread>	// For sleeping
+
+#include <ncurses.h>
 
 #include "ansi_term.hh"
 #include "error.hh"
@@ -85,6 +88,8 @@ namespace pomocom
 	// Reads sections from the file at *path where *path is altered
 	static void read_sections(const char *path)
 	{
+		state.file_name = path;
+
 		// Altering the path
 		std::string alt_path("");
 		if (std::strlen(path) >= 2 && path[0] == '.' && path[1] == '/')
@@ -116,17 +121,30 @@ namespace pomocom
 		if (exit_code)
 			PERR("section command \"%s\" exited with nonzero exit code %d", cmd, exit_code);
 	}
+
+	// Handles switching to the next section after a time section
+	void base_next_section()
+	{
+		if (state.current_section == SECTION_WORK)
+		{
+			if (--state.breaks_until_long == 0)
+			{
+				state.breaks_until_long = state.settings.breaks_until_long_reset;
+				switch_section(SECTION_BREAK_LONG);
+			}
+			else
+				switch_section(SECTION_BREAK);
+		}
+		else
+			switch_section(SECTION_WORK);
+	}
 }
 
 int main(int argc, char **argv)
 {
-	// Times of current timing section
-	std::time_t time_start;
-	std::time_t time_current;
-	std::time_t time_end;
-
 	using namespace pomocom;
 
+	// Init pomocom
 	try
 	{
 		// Set strings to paths that pomocom looks for files in
@@ -155,7 +173,7 @@ int main(int argc, char **argv)
 	}
 	catch (...)
 	{
-		// Don't print any error messages if an uncaught exception occurs because in such case an error message will already be printed
+		// Don't print an error message because one should already have printed
 		return 1;
 	}
 
@@ -163,50 +181,204 @@ int main(int argc, char **argv)
 	switch (state.settings.interface)
 	{
 	case INTERFACE_ANSI:
-		for (;;)
 		{
-			// Reference to info on the current section
-			SectionInfo &si = state.section_info[state.current_section];
+			// Time points of current timing section
+			std::time_t time_start;
+			std::time_t time_current;
+			std::time_t time_end;
 
-			// Print the pomocom text
-			std::cout << AT_CLEAR;
-			std::cout << "pomocom:\n";
-			
-			// Print the section name
-			std::cout << si.name << '\n';
-
-			// Start the timing section
-			time_start = std::time(nullptr);
-			time_end = time_start + si.secs;
-
-			while ((time_current = std::time(nullptr)) < time_end)
+			for (;;)
 			{
-				// Print the time remaining
-				std::time_t time_left = time_end - time_current;
-				int mins = time_left / 60;
-				int secs = time_left % 60;
-				std::cout << AT_CLEAR_LINE;
-				std::cout << mins << "m " << secs << "s" << std::flush;
-				std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
-			}
+				// Reference to info on the current section
+				SectionInfo &si = state.section_info[state.current_section];
 
-			if (state.current_section == SECTION_WORK)
-			{
-				if (--state.breaks_until_long == 0)
+				// Print the pomocom text
+				std::cout << AT_CLEAR;
+				std::cout << "pomocom: " << state.file_name << '\n';
+				
+				// Print the section name
+				std::cout << si.name << '\n';
+
+				// Start the timing section
+				time_start = std::time(nullptr);
+				time_end = time_start + si.secs;
+
+				while ((time_current = std::time(nullptr)) < time_end)
 				{
-					state.breaks_until_long = state.settings.breaks_until_long_reset;
-					switch_section(SECTION_BREAK_LONG);
+					// Print the time remaining
+					std::time_t time_left = time_end - time_current;
+					int mins = time_left / 60;
+					int secs = time_left % 60;
+					std::cout << AT_CLEAR_LINE;
+					std::cout << mins << "m " << secs << "s" << std::flush;
+					std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
 				}
-				else
-					switch_section(SECTION_BREAK);
+
+				base_next_section();
 			}
-			else
-				switch_section(SECTION_WORK);
 		}
 		break;
 	case INTERFACE_NCURSES:
-		PERR("ncurses interface not implemented yet");
-		abort();
+		{
+			// Color pair ids start at 1 because 0 is unchangeable after the call to use_default_colors()
+			enum ColorPair{
+				CP_POMOCOM = 1,
+				CP_SECTION_WORK,
+				CP_SECTION_BREAK,
+				CP_TIME,
+			};
+
+			try
+			{
+				// Init ncurses
+				if (initscr() == nullptr)
+				{
+					PERR("failed to initialize ncurses");
+					throw EXCEPT_GENERIC;
+				}
+
+				// Config input
+				if (cbreak() == ERR)
+				{
+					PERR("ncurses cbreak() call failed");
+					throw EXCEPT_GENERIC;
+				}
+				if (noecho() == ERR)
+				{
+					PERR("ncurses noecho() call failed");
+					throw EXCEPT_GENERIC;
+				}
+
+				// Init colors
+				if (start_color() == ERR)
+				{
+					PERR("failed to init ncurses colors");
+					throw EXCEPT_GENERIC;
+				}
+				if (use_default_colors() == ERR)
+				{
+					PERR("failed to use default ncurses colors");
+					throw EXCEPT_GENERIC;
+				}
+
+				// Try to call init_pair()
+				// On error, print an error message and throw an exception
+				#define TRY_INIT_PAIR(n, fg, bg)	do{ if (init_pair(n, fg, bg) == ERR){ PERR("failed to init color pair"); throw EXCEPT_GENERIC; }}while(0)
+
+				// Set colors
+				TRY_INIT_PAIR(CP_POMOCOM, COLOR_BLUE, -1);
+				TRY_INIT_PAIR(CP_SECTION_WORK, COLOR_YELLOW, -1);
+				TRY_INIT_PAIR(CP_SECTION_BREAK, COLOR_GREEN, -1);
+				TRY_INIT_PAIR(CP_TIME, -1, -1);
+			}
+			catch (...)
+			{
+				// Don't print an error message because one should already have printed
+				return 1;
+			}
+
+			// Set the maximum # of milliseconds to wait for input after getch() is called by calling timeout()
+			std::chrono::milliseconds timeout_duration(1000 * state.settings.update_interval);
+			timeout(timeout_duration.count());
+
+			// Time points of current timing section
+			std::chrono::time_point<std::chrono::high_resolution_clock> time_start, time_current, time_end;
+
+			for (;;)
+			{
+				// Reference to info on the current section
+				SectionInfo &si = state.section_info[state.current_section];
+
+				// Clear the screen
+				clear();
+				
+				// Print pomocom
+				attron(COLOR_PAIR(CP_POMOCOM));
+				printw("pomocom: %s\n", state.file_name);
+
+				// Print section name
+				if (state.current_section == SECTION_WORK)
+					attron(COLOR_PAIR(CP_SECTION_WORK));
+				else
+					attron(COLOR_PAIR(CP_SECTION_BREAK));
+				printw("%s\n", si.name);
+
+				// Set the color for the time
+				attron(COLOR_PAIR(CP_TIME));
+
+				// Start the timing section
+				time_start = std::chrono::high_resolution_clock::now();
+				time_end = time_start + std::chrono::milliseconds(1000 * si.secs);
+
+				for (;;)
+				{
+				l_print_time:
+					// Set time_current and check if time is up
+					time_current = std::chrono::high_resolution_clock::now();
+					if (time_current >= time_end)
+					{
+						// Time is up
+						break;
+					}
+
+					// Print the time remaining
+					std::chrono::seconds time_left = std::chrono::ceil<std::chrono::seconds>(time_end - time_current);
+					int mins = time_left.count() / 60;
+					int secs = time_left.count() % 60;
+
+					// Move to the area of the screen where the time remaining is displayed
+					move(2, 0);
+
+					clrtobot();
+					printw("%dm %ds", mins, secs);
+					refresh();
+
+					// Get user input
+					auto time_input_start = std::chrono::high_resolution_clock::now();
+					int c = getch();
+					switch (c)
+					{
+					// Pause
+					case 'j':
+						{
+							auto time_pause_start = std::chrono::high_resolution_clock::now();
+							addstr(" (paused)");
+							refresh();
+							for (;;)
+							{
+								if (getch() == 'j')
+								{
+									// Unpause
+									
+									// Extend time_end to include the time spent paused
+									auto time_pause_end = std::chrono::high_resolution_clock::now();
+									time_end += (time_pause_end - time_pause_start);
+
+									goto l_print_time;
+								}
+							}
+						}
+					case ERR:
+						// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
+						goto l_print_time;
+					}
+
+					// Code execution reaches here if the user has input something
+					// This means getch() will have returned before timeout_duration passed
+					// We will wait for however many milliseconds is needed until timeout_duration has passed from the moment getch() was called
+					auto time_input_end = std::chrono::high_resolution_clock::now();
+					std::chrono::milliseconds timeout_time_left(timeout_duration - std::chrono::duration_cast<std::chrono::milliseconds>(time_input_end - time_input_start));
+					if (timeout_time_left.count() > 0)
+						std::this_thread::sleep_for(timeout_time_left);
+				}
+
+				base_next_section();
+			}
+		}
+
+		// Quit ncurses
+		endwin();
+		break;
 	default:
 		PERR("unknown interface");
 		abort();

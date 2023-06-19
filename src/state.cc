@@ -16,7 +16,7 @@ namespace pomocom
 	// Initializer for global state
 	ProgramState state = {
 		.settings = {
-			.interface = INTERFACE_ANSI,
+			.interface = INTERFACE_NCURSES,
 			.update_interval = 1,
 			.show_controls = false,
 			.breaks_until_long_reset = 3,
@@ -24,6 +24,7 @@ namespace pomocom
 		},
 		.current_section = SECTION_WORK,
 		.breaks_until_long = 3,
+		.file_name = nullptr,
 		// section_info left uninitialized because it will be set when files are read
 	};
 

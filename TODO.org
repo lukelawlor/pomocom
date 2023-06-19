@@ -18,10 +18,16 @@
 - [ ] show_controls
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
-- [ ] Ncurses
-  - [ ] Countdown
-  - [ ] Controls
-    - [ ] Pausing
+- [ ] Create interface class
+- [-] Ncurses
+  - [X] Countdown
+  - [-] Controls
+    - [X] Pausing
     - [ ] Skipping to the next section
     - [ ] Enabling/disabling pauses between sections
-  - [ ] Colors
+    - [ ] Rebinding of controls
+  - [ ] Handle resizing window
+  - [-] Colors
+    - [X] Use
+    - [ ] Configuration
+    - [ ] Handle systems with no colors

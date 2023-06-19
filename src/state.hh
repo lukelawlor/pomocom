@@ -19,6 +19,9 @@ namespace pomocom
 		// # of breaks left until long break
 		int breaks_until_long;
 
+		// C string containing the name of the pomo file opened
+		const char *file_name;
+
 		SectionInfo section_info[SECTION_MAX];
 	};
 
