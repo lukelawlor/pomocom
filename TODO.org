@@ -12,6 +12,8 @@
   - [ ] Through command line args
 - [ ] Show pomo file name in output
 - [ ] Search for files in multiple directories in order
+* Optimization
+- [ ] Change Ncurses =getch()= behavior during pausing
 * Options in config files
 - [ ] interface
 - [ ] update_interval
@@ -23,8 +25,8 @@
   - [X] Countdown
   - [-] Controls
     - [X] Pausing
-    - [ ] Skipping to the next section
-    - [ ] Enabling/disabling pauses between sections
+    - [X] Skipping to the next section
+    - [X] Enabling/disabling pauses between sections
     - [ ] Rebinding of controls
   - [ ] Handle resizing window
   - [-] Colors

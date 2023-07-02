@@ -289,6 +289,23 @@ int main(int argc, char **argv)
 				// Reference to info on the current section
 				SectionInfo &si = state.section_info[state.current_section];
 
+				// Pause before starting the section
+				if (state.settings.pause_before_section_start)
+				{
+					clear();
+					attron(COLOR_PAIR(CP_POMOCOM));
+					printw("pomocom: %s\n", state.file_name);
+					attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
+					printw("next up: %s (%dm%ds)\n", si.name, si.secs / 60, si.secs % 60);
+					attron(COLOR_PAIR(CP_TIME));
+					printw("press %c to begin.", state.settings.keys.section_begin);
+					refresh();
+
+					// Wait until the section begin key is pressed
+					while (getch() != state.settings.keys.section_begin)
+						;
+				}
+
 				// Clear the screen
 				clear();
 				
@@ -297,10 +314,7 @@ int main(int argc, char **argv)
 				printw("pomocom: %s\n", state.file_name);
 
 				// Print section name
-				if (state.current_section == SECTION_WORK)
-					attron(COLOR_PAIR(CP_SECTION_WORK));
-				else
-					attron(COLOR_PAIR(CP_SECTION_BREAK));
+				attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
 				printw("%s\n", si.name);
 
 				// Set the color for the time
@@ -334,31 +348,36 @@ int main(int argc, char **argv)
 					refresh();
 
 					// Get user input
+					auto &keys = state.settings.keys;
 					auto time_input_start = std::chrono::high_resolution_clock::now();
 					int c = getch();
-					switch (c)
+					if (c == keys.pause)
 					{
-					// Pause
-					case 'j':
+						auto time_pause_start = std::chrono::high_resolution_clock::now();
+						addstr(" (paused)");
+						refresh();
+						for (;;)
 						{
-							auto time_pause_start = std::chrono::high_resolution_clock::now();
-							addstr(" (paused)");
-							refresh();
-							for (;;)
+							if (getch() == keys.pause)
 							{
-								if (getch() == 'j')
-								{
-									// Unpause
-									
-									// Extend time_end to include the time spent paused
-									auto time_pause_end = std::chrono::high_resolution_clock::now();
-									time_end += (time_pause_end - time_pause_start);
+								// Unpause
+								
+								// Extend time_end to include the time spent paused
+								auto time_pause_end = std::chrono::high_resolution_clock::now();
+								time_end += (time_pause_end - time_pause_start);
 
-									goto l_print_time;
-								}
+								goto l_print_time;
 							}
 						}
-					case ERR:
+					}
+					else if (c == keys.section_skip)
+					{
+						// Skip to next section by altering time_end
+						time_end = time_current;
+						goto l_print_time;
+					}
+					else if (c == ERR)
+					{
 						// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
 						goto l_print_time;
 					}

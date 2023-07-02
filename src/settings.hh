@@ -16,9 +16,17 @@ namespace pomocom
 		int update_interval;
 
 		bool show_controls : 1;
+		bool pause_before_section_start : 1;
 
 		// Number of breaks until a long break
 		int breaks_until_long_reset;
+
+		// Keyboard controls
+		struct SettingsKeys{
+			char pause;
+			char section_begin;
+			char section_skip;
+		} keys;
 
 		// Paths
 		// These should all be C strings that end in with '/'

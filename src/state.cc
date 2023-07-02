@@ -19,7 +19,13 @@ namespace pomocom
 			.interface = INTERFACE_NCURSES,
 			.update_interval = 1,
 			.show_controls = false,
+			.pause_before_section_start = false,
 			.breaks_until_long_reset = 3,
+			.keys = {
+				.pause = 'j',
+				.section_begin = 'j',
+				.section_skip = 'k',
+			},
 			// paths left uninitialized because they're initialized by set_paths()
 		},
 		.current_section = SECTION_WORK,

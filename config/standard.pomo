@@ -7,5 +7,5 @@ break time
 5m0s
 
 long break time
-+msg.sh square "break time"
++msg.sh square "long break time"
 15m0s
