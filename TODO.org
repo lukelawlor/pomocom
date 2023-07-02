@@ -15,12 +15,12 @@
 * Optimization
 - [ ] Change Ncurses =getch()= behavior during pausing
 * Options in config files
+- [ ] Create config file system
 - [ ] interface
 - [ ] update_interval
 - [ ] show_controls
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
-- [ ] Create interface class
 - [-] Ncurses
   - [X] Countdown
   - [-] Controls
@@ -33,3 +33,11 @@
     - [X] Use
     - [ ] Configuration
     - [ ] Handle systems with no colors
+* Documentation
+- [-] Readme
+  - [X] Screenshot
+  - [X] Pomo file syntax
+  - [ ] Config file syntax
+- [ ] Man page
+- [ ] Help text
+- [ ] Version number output
