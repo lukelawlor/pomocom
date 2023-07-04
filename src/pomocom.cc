@@ -4,7 +4,7 @@
 
 #include <chrono>	// For sleeping for a specified duration
 #include <cstdlib>	// For std::time()
-#include <cstring>	// For std::strcpy() and std::strlen()
+#include <cstring>	// For std::strcpy(), std::strlen()
 #include <cstdio>	// For std::FILE and std::fopen
 #include <iostream>
 #include <mutex>
@@ -138,6 +138,7 @@ namespace pomocom
 		else
 			switch_section(SECTION_WORK);
 	}
+
 }
 
 int main(int argc, char **argv)
@@ -149,6 +150,9 @@ int main(int argc, char **argv)
 	{
 		// Set strings to paths that pomocom looks for files in
 		set_paths();
+
+		// Read pomocom.conf
+		settings_read();
 
 		// Read in settings
 		if (argc == 1)
@@ -400,7 +404,7 @@ int main(int argc, char **argv)
 		break;
 	default:
 		PERR("unknown interface");
-		abort();
+		return 1;
 	}
 
 	return 0;

@@ -23,13 +23,4 @@ namespace pomocom
 		char cmd[SECTION_INFO_CMD_LEN];
 		int secs;
 	};
-
-	// Program interface types
-	enum ProgramInterface{
-		// Interface that uses ANSI terminal escape codes
-		INTERFACE_ANSI,
-
-		// Interface using the ncurses library
-		INTERFACE_NCURSES,
-	};
 }

@@ -30,8 +30,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%
 .PHONY: clean install uninstall
 
 clean:
-	rm $(BINPATH)
 	rm -rf $(BUILD_DIR)
+	rm $(BINPATH)
 
 install: all
 	mkdir -p $(INSTALL_DIR)

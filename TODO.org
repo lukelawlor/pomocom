@@ -8,12 +8,15 @@
   - [X] Set up the config directory at ~/.config/pomocom
 - [X] Split up contents in pomocom.cc
 - [ ] Reading in config file options
-  - [ ] Through comfig files
+  - [ ] Through config files
   - [ ] Through command line args
-- [ ] Show pomo file name in output
+- [X] Show pomo file name in output
 - [ ] Search for files in multiple directories in order
 * Optimization
-- [ ] Change Ncurses =getch()= behavior during pausing
+- [ ] Change ncurses =getch()= behavior during pausing
+* Code Polishing
+- [ ] Change clock type for ncurses timing
+- [ ] Handle pointers/types better in =settings.cc:setting_set()=
 * Options in config files
 - [ ] Create config file system
 - [ ] interface
@@ -21,7 +24,7 @@
 - [ ] show_controls
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
-- [-] Ncurses
+- [-] ncurses
   - [X] Countdown
   - [-] Controls
     - [X] Pausing
@@ -41,3 +44,5 @@
 - [ ] Man page
 - [ ] Help text
 - [ ] Version number output
+* Bugs
+- [ ] ncurses buffers keyboard input randomly

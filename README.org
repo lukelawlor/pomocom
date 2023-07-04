@@ -21,7 +21,7 @@ Installing *pomocom* will copy the =config= directory in the project's root dire
 Uninstalling *pomocom* will remove the config directory at =~/.config/pomocom=. To uninstall, run =make uninstall=.
 
 * Configuration
-*pomocom* is configured with files found in =~/.config/pomocom=. In there, =pomocom.conf= contains program settings values, and *pomo files* (ending in .pomo) contain timing section information. pomo files are written in the following format:
+*pomocom* is configured with files found in =~/.config/pomocom=. In there, =pomocom.conf= contains program settings values (though it currently isn't read yet), and *pomo files* (ending in .pomo) contain timing section information. pomo files are written in the following format:
 #+begin_src
   (name of work section)
   (optional +)(command to run when the section is over)
@@ -62,7 +62,7 @@ When *pomocom* is run with no command line arguments, the pomo file =standard.po
 
 If present, the second command line argument is used to fetch the pomo file to read. The path of this file will be the entirety of the second argument suffixed with =.pomo=.
 
-** Default controls
+** Default Controls
 These are not available in the ANSI interface.
 
 - j :: Begins the timing section, pauses, and unpauses
