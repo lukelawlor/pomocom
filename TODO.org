@@ -36,10 +36,10 @@
     - [ ] Configuration
     - [ ] Handle systems with no colors
 * Documentation
-- [-] Readme
+- [X] Readme
   - [X] Screenshot
   - [X] Pomo file syntax
-  - [ ] Config file syntax
+  - [X] Config file syntax
 - [ ] Man page
 - [ ] Help text
 - [ ] Version number output

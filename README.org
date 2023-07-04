@@ -21,7 +21,57 @@ Installing *pomocom* will copy the =config= directory in the project's root dire
 Uninstalling *pomocom* will remove the config directory at =~/.config/pomocom=. To uninstall, run =make uninstall=.
 
 * Configuration
-*pomocom* is configured with files found in =~/.config/pomocom=. In there, =pomocom.conf= contains program settings values (though it currently isn't read yet), and *pomo files* (ending in .pomo) contain timing section information. pomo files are written in the following format:
+*pomocom* is configured with files found in =~/.config/pomocom=. In there, =pomocom.conf= contains program settings values, and *pomo files* (ending in .pomo) contain timing section information.
+
+** pomocom.conf
+=pomocom.conf= is written in the following format:
+#+begin_src
+  setting_name_1 setting_value_1
+  setting_name_2 setting_value_2
+  setting_name_3 setting_value_3
+  ...
+#+end_src
+Settings come in two distinct types: strings and numbers.
+
+String settings can hold strings with spaces in them, but these spaces must come after the space character after the setting name.
+
+Number settings can be split into multiple subtypes with different byte sizes: bool (1 byte), char (1 byte), int (1 byte), and long (8 bytes). These settings can also be set to string values that pomocom converts into numbers using an internal table of *keywords* (ex. you can set the setting =interface= to =ncurses= because =ncurses= is defined as a keyword that translates to the number 1). See the end of this section for a table of all keywords.
+
+Here is an example =pomocom.conf= file:
+#+begin_src
+  interface ncurses
+  update_interval 1
+  pause_before_section_start true
+  breaks_until_long_reset 2
+  keys.pause j
+  keys.section_begin j
+  keys.section_skip k
+#+end_src
+
+Here is a table of all settings:
+| Name                       | Type   | Default Value      | Description                                                           |
+|----------------------------+--------+--------------------+-----------------------------------------------------------------------|
+| interface                  | int    | ncurses            | The type of interface pomocom will present                            |
+| update_interval            | long   | 1                  | The # of seconds to wait between screen updates                       |
+| pause_before_section_start | bool   | false              | Controls whether or not pomocom pauses before a section starts        |
+| breaks_until_long_break    | int    | 2                  | Controls how many break sections must pass before a long break occurs |
+| keys.pause                 | char   | j                  | Key to pause and unpause                                              |
+| keys.section_begin         | char   | j                  | Key to begin the section                                              |
+| keys.section_skip          | char   | k                  | Key to skip to the next section                                       |
+| paths.config               | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomocom.conf resides      |
+| paths.section              | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomo files reside         |
+| paths.bin                  | string | ~/.config/pomocom/ | Path (ending with /) to the directory where executable scripts reside |
+
+Here is a table of all keywords:
+| Keyword | Value                                                  |
+|---------+--------------------------------------------------------|
+| true    | 1                                                      |
+| false   | 0                                                      |
+| ansi    | 0 (internally set to INTERFACE_ANSI in source code)    |
+| ncurses | 1 (internally set to INTERFACE_NCURSES in source code) |
+
+** Pomo Files
+Pomo files are written in the following format:
 #+begin_src
   (name of work section)
   (optional +)(command to run when the section is over)
@@ -37,7 +87,7 @@ Uninstalling *pomocom* will remove the config directory at =~/.config/pomocom=. 
   
 #+end_src
 
-If the section command is prefixed with =+=, the command will be prefixed with the config file path (=~/.config/pomocom/=). This is used so that you can easily execute files in the config directory without needing to add the config file path to your =$PATH=.
+If the section command is prefixed with =+=, the command will be prefixed with the path contained in the setting =paths.bin= (set by default to =~/.config/pomocom/=). This is used so that you can easily execute files in a directory meant for pomocom scripts without needing to add this directory to your =$PATH=.
 
 Here is an example pomo file:
 #+begin_src
@@ -60,7 +110,7 @@ Here is an example pomo file:
 ** Command Line Arguments
 When *pomocom* is run with no command line arguments, the pomo file =standard.pomo= in the program's config directory is read.
 
-If present, the second command line argument is used to fetch the pomo file to read. The path of this file will be the entirety of the second argument suffixed with =.pomo=.
+If present, the second command line argument is used to fetch the pomo file to read. The path of this file will be the entirety of the second argument prefixed with the setting =paths.section= (set by default to =~/.config/pomocom/=) suffixed with =.pomo=. If the second argument starts with =./=, the pomo file will be searched for in the working directory.
 
 ** Default Controls
 These are not available in the ANSI interface.
