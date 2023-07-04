@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstddef>	// For std::ptrdiff_t
+#include <string>
 #include <unordered_map>
 
 #include "pomocom.hh"
@@ -33,6 +34,7 @@ namespace pomocom
 	static_assert(sizeof(SettingLong) > sizeof(SettingChar), SETTING_LONG_ASSERT_MSG);
 	static_assert(sizeof(SettingLong) > sizeof(SettingInt), SETTING_LONG_ASSERT_MSG);
 
+	// Setting type IDs
 	enum SettingType{
 		ST_CHAR,
 		ST_STRING,
@@ -43,12 +45,12 @@ namespace pomocom
 
 	// Program settings
 	struct ProgramSettings{
+		// Meant to hold a value of type ProgramInterface
 		SettingInt interface;
 
 		// # of seconds to wait between screen updates
 		SettingLong update_interval;
 
-		SettingBool show_controls;
 		SettingBool pause_before_section_start;
 
 		// Number of breaks until a long break
@@ -67,7 +69,7 @@ namespace pomocom
 			// Path to directory where config files are stored
 			SettingString config;
 
-			// Path to directory that section files are stored in
+			// Path to directory that pomo files are stored in
 			SettingString section;
 
 			// Path to directory that script files are stored in
@@ -76,25 +78,25 @@ namespace pomocom
 		} paths;
 	};
 
-	// Defines a setting of a specified type with a memory address at the address of a ProgramSettings object + offset
+	// Definition for a setting of a specified type with a memory address at the address of a ProgramSettings object + offset
 	struct SettingDef{
 		SettingType type;
-		ptrdiff_t offset;
+		std::ptrdiff_t offset;
 	};
 
 	// Map of settings
-	// Key = string containing name of setting
-	// Value = SettingDef object
-	extern const std::unordered_map<const char *, SettingDef> settings_map;
+	// Key:   string containing name of setting
+	// Value: SettingDef object
+	extern const std::unordered_map<std::string_view, SettingDef> settings_map;
 
 	// Map of keywords that translate into SettingInt values
-	// Key = string containing name of keyword
-	// Value = SettingInt object
-	extern const std::unordered_map<const char *, SettingInt> settings_keyword_map;
+	// Key:   string containing name of keyword
+	// Value: SettingInt object
+	extern const std::unordered_map<std::string_view, SettingInt> settings_keyword_map;
 
-	// Set a setting
+	// Set the setting with name *setting_name to *setting_value
 	void setting_set(ProgramSettings &s, const char *setting_name, const char *setting_value);
 
-	// Read pomocom.conf file
-	void settings_read();
+	// Read settings file
+	void settings_read(ProgramSettings &s);
 }

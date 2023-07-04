@@ -7,9 +7,6 @@
   - [X] Install the binary in a customizable directory
   - [X] Set up the config directory at ~/.config/pomocom
 - [X] Split up contents in pomocom.cc
-- [ ] Reading in config file options
-  - [ ] Through config files
-  - [ ] Through command line args
 - [X] Show pomo file name in output
 - [ ] Search for files in multiple directories in order
 * Optimization
@@ -17,11 +14,13 @@
 * Code Polishing
 - [ ] Change clock type for ncurses timing
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
-* Options in config files
-- [ ] Create config file system
-- [ ] interface
-- [ ] update_interval
-- [ ] show_controls
+- [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
+* Settings
+- [X] Create config file system
+- [ ] Config file syntax changes
+  - [ ] Comments
+  - [ ] Using equals sign
+- [ ] Setting settings with command line args
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
 - [-] ncurses

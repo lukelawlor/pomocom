@@ -4,7 +4,7 @@
 
 #include <chrono>	// For sleeping for a specified duration
 #include <cstdlib>	// For std::time()
-#include <cstring>	// For std::strcpy(), std::strlen()
+#include <cstring>	// For std::strcpy() and std::strlen()
 #include <cstdio>	// For std::FILE and std::fopen
 #include <iostream>
 #include <mutex>
@@ -127,13 +127,16 @@ namespace pomocom
 	{
 		if (state.current_section == SECTION_WORK)
 		{
-			if (--state.breaks_until_long == 0)
+			if (state.breaks_until_long <= 0)
 			{
 				state.breaks_until_long = state.settings.breaks_until_long_reset;
 				switch_section(SECTION_BREAK_LONG);
 			}
 			else
+			{
+				--state.breaks_until_long;
 				switch_section(SECTION_BREAK);
+			}
 		}
 		else
 			switch_section(SECTION_WORK);
@@ -152,9 +155,12 @@ int main(int argc, char **argv)
 		set_paths();
 
 		// Read pomocom.conf
-		settings_read();
+		settings_read(state.settings);
 
-		// Read in settings
+		// Reset breaks_until_long
+		state.breaks_until_long = state.settings.breaks_until_long_reset;
+
+		// Read command line args
 		if (argc == 1)
 			read_sections("standard");
 		else if (argc == 2)

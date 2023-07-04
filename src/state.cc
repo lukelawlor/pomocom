@@ -18,7 +18,6 @@ namespace pomocom
 		.settings = {
 			.interface = INTERFACE_NCURSES,
 			.update_interval = 1,
-			.show_controls = false,
 			.pause_before_section_start = false,
 			.breaks_until_long_reset = 3,
 			.keys = {
@@ -44,7 +43,7 @@ namespace pomocom
 		char *path_home;
 
 		// Get path to home based on OS
-#ifdef	__linux__
+#ifdef	__unix__
 		path_home = std::getenv("HOME");
 #else
 #error "compilation target platform unknown"
