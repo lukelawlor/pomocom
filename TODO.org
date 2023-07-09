@@ -8,12 +8,11 @@
   - [X] Set up the config directory at ~/.config/pomocom
 - [X] Split up contents in pomocom.cc
 - [X] Show pomo file name in output
-- [ ] Search for files in multiple directories in order
 * Optimization
 - [X] Change ncurses =getch()= behavior during pausing
 * Code Polishing
 - [X] Change clock type for ncurses timing
-- [X] Write better header comments for files
+- [ ] Write better header comments for files
 - [ ] Move interface code to files separate from =pomocom.cc=
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
@@ -47,4 +46,6 @@
 - [ ] Version number output
 * Bugs
 - [X] ncurses buffers keyboard input randomly
-- [ ] strings settings don't have their own memory
+- [X] strings settings don't have their own memory
+* Low-priority Additions
+- [ ] Search for files in multiple directories in order

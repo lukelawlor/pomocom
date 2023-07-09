@@ -60,6 +60,7 @@ namespace pomocom
 
 		// Keyboard controls
 		struct SettingsKeys{
+			SettingChar quit;
 			SettingChar pause;
 			SettingChar section_begin;
 			SettingChar section_skip;
@@ -67,6 +68,7 @@ namespace pomocom
 
 		// Paths
 		// These should all be C strings that end in with '/'
+		// IMPORTANT: each path should point to unique memory because std::free() will be called on all of them when pomocom exits
 		struct SettingsPaths{
 			// Path to directory where config files are stored
 			SettingString config;
@@ -107,4 +109,7 @@ namespace pomocom
 
 	// Read settings file
 	void settings_read(ProgramSettings &s);
+
+	// Free all C strings in path settings
+	void settings_free_paths(ProgramSettings::SettingsPaths &paths);
 }

@@ -285,6 +285,11 @@ int main(int argc, char **argv)
 						// Skip to next section by exiting the loop
 						break;
 					}
+					else if (c == keys.quit)
+					{
+						// Quit
+						goto l_ncurses_quit;
+					}
 					else if (c == ERR)
 					{
 						// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
@@ -315,7 +320,7 @@ int main(int argc, char **argv)
 				base_next_section();
 			}
 		}
-
+	l_ncurses_quit:
 		// Quit ncurses
 		endwin();
 		break;
@@ -323,6 +328,9 @@ int main(int argc, char **argv)
 		PERR("unknown interface");
 		return 1;
 	}
+
+	// Cleanup and exit
+	settings_free_paths(state.settings.paths);
 
 	return 0;
 }

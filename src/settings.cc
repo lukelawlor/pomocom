@@ -51,6 +51,7 @@ namespace pomocom
 		ADD_SETTING(update_interval)
 		ADD_SETTING(pause_before_section_start)
 		ADD_SETTING(breaks_until_long_reset)
+		ADD_SETTING(keys.quit)
 		ADD_SETTING(keys.pause)
 		ADD_SETTING(keys.section_begin)
 		ADD_SETTING(keys.section_skip)
@@ -68,6 +69,9 @@ namespace pomocom
 		{"ansi", INTERFACE_ANSI},
 	};
 
+	// Acts the same as strdup() but throws an exception on error
+	static const char *strdup_throwable(const char *str);
+
 	// Sets default settings values
 	ProgramSettings::ProgramSettings() :
 		interface(INTERFACE_NCURSES),
@@ -75,6 +79,7 @@ namespace pomocom
 		pause_before_section_start(false),
 		breaks_until_long_reset(3),
 		keys({
+			.quit = 'q',
 			.pause = 'j',
 			.section_begin = 'j',
 			.section_skip = 'k',
@@ -96,19 +101,21 @@ namespace pomocom
 
 		// Buffer used for manipulating strings
 		std::string buf("");
-
-		// Set path_config
 		buf += path_home;
 		buf += "/.config/pomocom/";
-		paths.config = strdup(buf.c_str());
-		if (paths.config == nullptr)
+
+		// Set paths
+		try
 		{
-			PERR("failed to allocate mem for config file path");
+			paths.config = strdup_throwable(buf.c_str());
+			paths.section = strdup_throwable(paths.config);
+			paths.bin = strdup_throwable(paths.config);
+		}
+		catch (...)
+		{
+			PERR("failed to allocate mem for path settings");
 			throw EXCEPT_BAD_ALLOC;
 		}
-		
-		// Set other paths which are the same as the config path for now
-		paths.bin = paths.section = paths.config;
 	}
 
 	// Set the setting with name *setting_name to *setting_value
@@ -131,18 +138,21 @@ namespace pomocom
 		// Set the setting
 		switch (setting_def->type)
 		{
+		case ST_CHAR: { auto p = (SettingChar *) setting_ptr; *p = setting_value[0]; } break;
 		case ST_STRING:
 			{
-				// The setting is a string
-				SettingString *p = reinterpret_cast<SettingString *>(setting_ptr);
-				*p = setting_value;
-			}
-			break;
-		case ST_CHAR:
-			{
-				// The setting is a char
-				SettingChar *p = reinterpret_cast<SettingChar *>(setting_ptr);
-				*p = setting_value[0];
+				auto p = (SettingString *) setting_ptr;
+
+				// Free the old C string that the setting holds
+				std::free((void *) (*p));
+
+				// Duplicate *setting_value and make the setting point to the new string
+				try{ *p = strdup_throwable(setting_value); }
+				catch (...)
+				{
+					PERR("failed to allocate mem when creating new string for setting \"%s\"", setting_name);
+					throw EXCEPT_BAD_ALLOC;
+				}
 			}
 			break;
 		default:
@@ -174,19 +184,19 @@ namespace pomocom
 				{
 				case ST_BOOL:
 					{
-						SettingBool *p = reinterpret_cast<SettingBool *>(setting_ptr);
+						auto p = (SettingBool *) setting_ptr;
 						*p = static_cast<SettingBool>(setting_value_number);
 						break;
 					}
 				case ST_INT:
 					{
-						SettingInt *p = reinterpret_cast<SettingInt *>(setting_ptr);
+						auto p = (SettingInt *) setting_ptr;
 						*p = static_cast<SettingInt>(setting_value_number);
 						break;
 					}
 				case ST_LONG:
 					{
-						SettingLong *p = reinterpret_cast<SettingLong *>(setting_ptr);
+						auto p = (SettingLong *) setting_ptr;
 						*p = setting_value_number;
 						break;
 					}
@@ -285,5 +295,22 @@ namespace pomocom
 				break;
 			}
 		}
+	}
+
+	// Free all C strings in path settings
+	void settings_free_paths(ProgramSettings::SettingsPaths &paths)
+	{
+		std::free((void *) paths.config);
+		std::free((void *) paths.section);
+		std::free((void *) paths.bin);
+	}
+
+	// Acts the same as strdup() but throws an exception on error
+	static const char *strdup_throwable(const char *str)
+	{
+		const char *duplicated_str = strdup(str);
+		if (duplicated_str == nullptr)
+			throw EXCEPT_BAD_ALLOC;
+		return duplicated_str;
 	}
 }
