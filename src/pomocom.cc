@@ -294,8 +294,9 @@ int main(int argc, char **argv)
 			using Clock = std::chrono::high_resolution_clock;
 
 			// Start and end time points of timing section
-			std::chrono::time_point<Clock> time_start, time_end;
+			std::chrono::time_point<Clock> time_start, time_current, time_end;
 
+			// Repeatedly move through timing sections
 			for (;;)
 			{
 				// Reference to info on the current section
@@ -340,17 +341,9 @@ int main(int argc, char **argv)
 				time_start = Clock::now();
 				time_end = time_start + std::chrono::seconds(si.secs);
 
-				for (;;)
+				// Repeatedly update the screen and check for input until section time is over
+				while ((time_current = Clock::now()) < time_end)
 				{
-				l_print_time:
-					// Set time_current and check if time is up
-					auto time_current = Clock::now();
-					if (time_current >= time_end)
-					{
-						// Time is up
-						break;
-					}
-
 					// Print the time left in the section
 					std::chrono::seconds time_left = std::chrono::ceil<std::chrono::seconds>(time_end - time_current);
 					int mins = time_left.count() / 60;
@@ -386,29 +379,27 @@ int main(int argc, char **argv)
 						// Make getch() wait for input before returning
 						timeout(-1);
 
-						for (;;)
-						{
-							if (getch() == keys.pause)
-							{
-								// Unpause
-								
-								// Extend time_end to include the time spent paused
-								time_end += Clock::now() - time_pause_start;
+						// Wait until pause is pressed again to trigger an unpause
+						while (getch() != keys.pause)
+							;
+						
+						// Unpause
+						
+						// Extend time_end to include the time spent paused
+						time_end += Clock::now() - time_pause_start;
 
-								goto l_print_time;
-							}
-						}
+						// Go back to updating the screen
+						continue;
 					}
 					else if (c == keys.section_skip)
 					{
-						// Skip to next section by altering time_end
-						time_end = time_current;
-						goto l_print_time;
+						// Skip to next section by exiting the loop
+						break;
 					}
 					else if (c == ERR)
 					{
 						// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
-						goto l_print_time;
+						continue;
 					}
 					else
 					{
@@ -420,17 +411,18 @@ int main(int argc, char **argv)
 						if (time_until_screen_update.count() <= 0)
 						{
 							// A screen update should happen now
-							goto l_print_time;
+							continue;
 						}
 						else
 						{
 							// Reset timeout to reflect the change to the time until the next screen update
 							timeout(time_until_screen_update.count());
+
+							// Try to get more user input before the next screen update
 							goto l_get_user_input;
 						}
 					}
 				}
-
 				base_next_section();
 			}
 		}

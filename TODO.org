@@ -13,7 +13,6 @@
 - [X] Change ncurses =getch()= behavior during pausing
 * Code Polishing
 - [X] Change clock type for ncurses timing
-- [ ] Replace gotos in ncurses interface code
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
 * Settings
@@ -26,11 +25,11 @@
 - [ ] Conditional compilation of certain interfaces
 - [-] ncurses
   - [X] Countdown
-  - [-] Controls
+  - [X] Controls
     - [X] Pausing
     - [X] Skipping to the next section
     - [X] Enabling/disabling pauses between sections
-    - [ ] Rebinding of controls
+    - [X] Rebinding of controls
   - [ ] Handle resizing window
   - [-] Colors
     - [X] Use
