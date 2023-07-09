@@ -24,10 +24,9 @@ namespace pomocom
 	consteval SettingType get_setting_type_from_variable_type()
 	{
 		if constexpr (std::is_same_v<T, SettingBool>) return ST_BOOL;
-		if constexpr (std::is_same_v<T, SettingBool>) return ST_BOOL;
-		if constexpr (std::is_same_v<T, SettingChar>) return ST_CHAR;
 		if constexpr (std::is_same_v<T, SettingInt>) return ST_INT;
 		if constexpr (std::is_same_v<T, SettingLong>) return ST_LONG;
+		if constexpr (std::is_same_v<T, SettingChar>) return ST_CHAR;
 		if constexpr (std::is_same_v<T, SettingString>) return ST_STRING;
 
 		// Cause a compilation error because the variable type cannot be converted to a setting type
@@ -108,7 +107,7 @@ namespace pomocom
 				// Number that *setting_value will be converted into
 				SettingLong setting_value_number;
 				
-				if (isdigit(*setting_value))
+				if (isdigit(setting_value[0]))
 				{
 					// If the first character of *setting_value is a digit, assume that *setting_value is a number in string form
 					setting_value_number = std::atoll(setting_value);

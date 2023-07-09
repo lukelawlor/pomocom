@@ -10,9 +10,10 @@
 - [X] Show pomo file name in output
 - [ ] Search for files in multiple directories in order
 * Optimization
-- [ ] Change ncurses =getch()= behavior during pausing
+- [X] Change ncurses =getch()= behavior during pausing
 * Code Polishing
-- [ ] Change clock type for ncurses timing
+- [X] Change clock type for ncurses timing
+- [ ] Replace gotos in ncurses interface code
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
 * Settings
@@ -44,4 +45,5 @@
 - [ ] Help text
 - [ ] Version number output
 * Bugs
-- [ ] ncurses buffers keyboard input randomly
+- [X] ncurses buffers keyboard input randomly
+- [ ] strings settings don't have their own memory

@@ -287,12 +287,14 @@ int main(int argc, char **argv)
 				return 1;
 			}
 
-			// Set the maximum # of milliseconds to wait for input after getch() is called by calling timeout()
-			std::chrono::milliseconds timeout_duration(1000 * state.settings.update_interval);
-			timeout(timeout_duration.count());
+			// Store update interval in milliseconds
+			std::chrono::milliseconds update_interval(1000 * state.settings.update_interval);
 
-			// Time points of current timing section
-			std::chrono::time_point<std::chrono::high_resolution_clock> time_start, time_current, time_end;
+			// Alias for clock type
+			using Clock = std::chrono::high_resolution_clock;
+
+			// Start and end time points of timing section
+			std::chrono::time_point<Clock> time_start, time_end;
 
 			for (;;)
 			{
@@ -302,6 +304,7 @@ int main(int argc, char **argv)
 				// Pause before starting the section
 				if (state.settings.pause_before_section_start)
 				{
+					// Print info about the upcoming section
 					clear();
 					attron(COLOR_PAIR(CP_POMOCOM));
 					printw("pomocom: %s\n", state.file_name);
@@ -311,6 +314,9 @@ int main(int argc, char **argv)
 					printw("press %c to begin.", state.settings.keys.section_begin);
 					refresh();
 
+					// Make getch() wait for input before returning
+					timeout(-1);
+
 					// Wait until the section begin key is pressed
 					while (getch() != state.settings.keys.section_begin)
 						;
@@ -319,7 +325,7 @@ int main(int argc, char **argv)
 				// Clear the screen
 				clear();
 				
-				// Print pomocom
+				// Print pomocom & pomo file name
 				attron(COLOR_PAIR(CP_POMOCOM));
 				printw("pomocom: %s\n", state.file_name);
 
@@ -331,41 +337,55 @@ int main(int argc, char **argv)
 				attron(COLOR_PAIR(CP_TIME));
 
 				// Start the timing section
-				time_start = std::chrono::high_resolution_clock::now();
-				time_end = time_start + std::chrono::milliseconds(1000 * si.secs);
+				time_start = Clock::now();
+				time_end = time_start + std::chrono::seconds(si.secs);
 
 				for (;;)
 				{
 				l_print_time:
 					// Set time_current and check if time is up
-					time_current = std::chrono::high_resolution_clock::now();
+					auto time_current = Clock::now();
 					if (time_current >= time_end)
 					{
 						// Time is up
 						break;
 					}
 
-					// Print the time remaining
+					// Print the time left in the section
 					std::chrono::seconds time_left = std::chrono::ceil<std::chrono::seconds>(time_end - time_current);
 					int mins = time_left.count() / 60;
 					int secs = time_left.count() % 60;
 
-					// Move to the area of the screen where the time remaining is displayed
+					// Move to the area of the screen where the time left is displayed
 					move(2, 0);
 
+					// Print time left
 					clrtobot();
 					printw("%dm %ds", mins, secs);
 					refresh();
 
 					// Get user input
 					auto &keys = state.settings.keys;
-					auto time_input_start = std::chrono::high_resolution_clock::now();
+					auto time_input_start = Clock::now();
+
+					// Expect to wait update_interval milliseconds for getch() to return
+					timeout(update_interval.count());
+
+				l_get_user_input:
 					int c = getch();
 					if (c == keys.pause)
 					{
-						auto time_pause_start = std::chrono::high_resolution_clock::now();
+						// Pause
+
+						// Print pause text
 						addstr(" (paused)");
 						refresh();
+
+						auto time_pause_start = Clock::now();
+
+						// Make getch() wait for input before returning
+						timeout(-1);
+
 						for (;;)
 						{
 							if (getch() == keys.pause)
@@ -373,8 +393,7 @@ int main(int argc, char **argv)
 								// Unpause
 								
 								// Extend time_end to include the time spent paused
-								auto time_pause_end = std::chrono::high_resolution_clock::now();
-								time_end += (time_pause_end - time_pause_start);
+								time_end += Clock::now() - time_pause_start;
 
 								goto l_print_time;
 							}
@@ -391,14 +410,25 @@ int main(int argc, char **argv)
 						// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
 						goto l_print_time;
 					}
+					else
+					{
+						// The user input an unrecognized key before getch() returned ERR
 
-					// Code execution reaches here if the user has input something
-					// This means getch() will have returned before timeout_duration passed
-					// We will wait for however many milliseconds is needed until timeout_duration has passed from the moment getch() was called
-					auto time_input_end = std::chrono::high_resolution_clock::now();
-					std::chrono::milliseconds timeout_time_left(timeout_duration - std::chrono::duration_cast<std::chrono::milliseconds>(time_input_end - time_input_start));
-					if (timeout_time_left.count() > 0)
-						std::this_thread::sleep_for(timeout_time_left);
+						// Recalculate the time until the next screen update
+						std::chrono::milliseconds time_until_screen_update = update_interval - std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - time_input_start);
+
+						if (time_until_screen_update.count() <= 0)
+						{
+							// A screen update should happen now
+							goto l_print_time;
+						}
+						else
+						{
+							// Reset timeout to reflect the change to the time until the next screen update
+							timeout(time_until_screen_update.count());
+							goto l_get_user_input;
+						}
+					}
 				}
 
 				base_next_section();
