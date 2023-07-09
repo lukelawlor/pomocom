@@ -11,6 +11,8 @@
 
 #include "pomocom.hh"
 
+#define SETTING_LONG_ASSERT_MSG	"SettingLong must be the widest of all setting types besides SettingString"
+
 namespace pomocom
 {
 	// Program interface types
@@ -22,18 +24,6 @@ namespace pomocom
 		INTERFACE_NCURSES,
 	};
 
-	// Type definitions for settings
-	typedef char SettingChar;
-	typedef const char *SettingString;
-	typedef std::uint8_t SettingBool;
-	typedef std::int8_t SettingInt;
-	typedef std::int64_t SettingLong;
-
-	#define SETTING_LONG_ASSERT_MSG	"SettingLong must be the widest of all setting types besides SettingString"
-	static_assert(sizeof(SettingLong) > sizeof(SettingBool), SETTING_LONG_ASSERT_MSG);
-	static_assert(sizeof(SettingLong) > sizeof(SettingChar), SETTING_LONG_ASSERT_MSG);
-	static_assert(sizeof(SettingLong) > sizeof(SettingInt), SETTING_LONG_ASSERT_MSG);
-
 	// Setting type IDs
 	enum SettingType{
 		ST_CHAR,
@@ -42,6 +32,18 @@ namespace pomocom
 		ST_INT,
 		ST_LONG,
 	};
+
+	// Type definitions for settings
+	typedef char SettingChar;
+	typedef const char *SettingString;
+	typedef std::uint8_t SettingBool;
+	typedef std::int8_t SettingInt;
+	typedef std::int64_t SettingLong;
+
+	// Assert that SettingLong is the largest of the setting types besides SettingString
+	static_assert(sizeof(SettingLong) > sizeof(SettingBool), SETTING_LONG_ASSERT_MSG);
+	static_assert(sizeof(SettingLong) > sizeof(SettingChar), SETTING_LONG_ASSERT_MSG);
+	static_assert(sizeof(SettingLong) > sizeof(SettingInt), SETTING_LONG_ASSERT_MSG);
 
 	// Program settings
 	struct ProgramSettings{
@@ -76,6 +78,9 @@ namespace pomocom
 			SettingString bin;
 
 		} paths;
+
+		// Sets default settings values
+		ProgramSettings();
 	};
 
 	// Definition for a setting of a specified type with a memory address at the address of a ProgramSettings object + offset
@@ -93,6 +98,9 @@ namespace pomocom
 	// Key:   string containing name of keyword
 	// Value: SettingInt object
 	extern const std::unordered_map<std::string_view, SettingInt> settings_keyword_map;
+
+	// Set default values for path settings
+	void settings_set_default_paths(ProgramSettings::SettingsPaths &paths);
 
 	// Set the setting with name *setting_name to *setting_value
 	void setting_set(ProgramSettings &s, const char *setting_name, const char *setting_value);

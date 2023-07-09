@@ -2,12 +2,11 @@
  * pomocom.cc contains the main function and section and timing code.
  */
 
-#include <chrono>	// For sleeping for a specified duration
+#include <chrono>	// For sleeping
 #include <cstdlib>	// For std::time()
 #include <cstring>	// For std::strcpy() and std::strlen()
 #include <cstdio>	// For std::FILE and std::fopen
 #include <iostream>
-#include <mutex>
 #include <thread>	// For sleeping
 
 #include <ncurses.h>
@@ -21,144 +20,34 @@
 
 namespace pomocom
 {
-	// Reads sections from the file at *path where *path is unaltered
-	static void read_sections_raw(const char *path)
-	{
-		SmartFilePtr sfp(path, "r");
-		auto &fp = sfp.m_fp;
-
-		// Get section data
-		for (SectionInfo &s : state.section_info)
-		{
-			// Read in section name
-			try { spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp); }
-			catch (Exception &e)
-			{
-				if (e == EXCEPT_OVERRUN)
-				{
-					PERR("max chars read for section info name (over %d)", SECTION_INFO_NAME_LEN - 1);
-					throw e;
-				}
-			}
-
-			// Read in section command
-			try
-			{
-				int c = fgetc(fp);
-				if (c == '+')
-				{
-					// The program run in the command is in pomocom's bin directory
-
-					// Used to construct the proper path to the script
-					std::string buf(state.settings.paths.bin);
-
-					// Add the rest of the command name to buf
-					// The max # of chars to read here is shortened because s.cmd needs to contain the path to the script directory
-					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN - buf.size(), '\n', fp);
-					buf += s.cmd;
-
-					// Copy the final command from buf to s.cmd
-					std::strcpy(s.cmd, buf.c_str());
-				}
-				else
-				{
-					// The program run in the command is in the user's $PATH
-					ungetc(c, fp);
-					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
-				}
-			}
-			catch (Exception &e)
-			{
-				if (e == EXCEPT_OVERRUN)
-				{
-					PERR("max chars read for section info command (over %d)", SECTION_INFO_CMD_LEN - 1);
-					throw e;
-				}
-			}
-
-			// Read in section duration
-			int minutes, seconds;
-			if (std::fscanf(fp, "%dm%ds\n", &minutes, &seconds) != 2)
-				throw EXCEPT_IO;
-			s.secs = minutes * 60 + seconds;
-		}
-	}
-
-	// Returns nonzero on error
 	// Reads sections from the file at *path where *path is altered
-	static void read_sections(const char *path)
-	{
-		state.file_name = path;
+	static void read_sections(const char *path);
 
-		// Altering the path
-		std::string alt_path("");
-		if (std::strlen(path) >= 2 && path[0] == '.' && path[1] == '/')
-		{
-			// Path is relative
-			alt_path += (path + 2);
-		}
-		else
-		{
-			// Path is absolute
-			alt_path += state.settings.paths.section;
-			alt_path += path;
-		}
-		alt_path += ".pomo";
-
-		// Actually loading the section data with the altered path
-		read_sections_raw(alt_path.c_str());
-	}
+	// Reads sections from the file at *path where *path is unaltered
+	static void read_sections_raw(const char *path);
 
 	// Used to switch sections in interface code
-	void switch_section(Section new_section)
-	{
-		// Change section
-		state.current_section = new_section;
+	static void base_switch_section(Section new_section);
 
-		// Call section command
-		char *cmd = state.section_info[new_section].cmd;
-		int exit_code = std::system(cmd);
-		if (exit_code)
-			PERR("section command \"%s\" exited with nonzero exit code %d", cmd, exit_code);
-	}
-
-	// Handles switching to the next section after a time section
-	void base_next_section()
-	{
-		if (state.current_section == SECTION_WORK)
-		{
-			if (state.breaks_until_long <= 0)
-			{
-				state.breaks_until_long = state.settings.breaks_until_long_reset;
-				switch_section(SECTION_BREAK_LONG);
-			}
-			else
-			{
-				--state.breaks_until_long;
-				switch_section(SECTION_BREAK);
-			}
-		}
-		else
-			switch_section(SECTION_WORK);
-	}
-
+	// Handles switching to the next timing section after one finishes
+	static void base_next_section();
 }
 
 int main(int argc, char **argv)
 {
+	namespace chrono = std::chrono;
 	using namespace pomocom;
 
 	// Init pomocom
 	try
 	{
-		// Set strings to paths that pomocom looks for files in
-		set_paths();
-
 		// Read pomocom.conf
 		settings_read(state.settings);
 
-		// Reset breaks_until_long
+		// Set state values
+		state.current_section = SECTION_WORK;
 		state.breaks_until_long = state.settings.breaks_until_long_reset;
+		state.file_name = nullptr;
 
 		// Read command line args
 		if (argc == 1)
@@ -187,7 +76,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// Breaks left until a long break
+	// Use the specified interface
 	switch (state.settings.interface)
 	{
 	case INTERFACE_ANSI:
@@ -221,7 +110,7 @@ int main(int argc, char **argv)
 					int secs = time_left % 60;
 					std::cout << AT_CLEAR_LINE;
 					std::cout << mins << "m " << secs << "s" << std::flush;
-					std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
+					std::this_thread::sleep_for(chrono::seconds(state.settings.update_interval));
 				}
 
 				base_next_section();
@@ -288,13 +177,13 @@ int main(int argc, char **argv)
 			}
 
 			// Store update interval in milliseconds
-			std::chrono::milliseconds update_interval(1000 * state.settings.update_interval);
+			chrono::milliseconds update_interval(1000 * state.settings.update_interval);
 
 			// Alias for clock type
-			using Clock = std::chrono::high_resolution_clock;
+			using Clock = chrono::high_resolution_clock;
 
 			// Start and end time points of timing section
-			std::chrono::time_point<Clock> time_start, time_current, time_end;
+			chrono::time_point<Clock> time_start, time_current, time_end;
 
 			// Repeatedly move through timing sections
 			for (;;)
@@ -339,13 +228,13 @@ int main(int argc, char **argv)
 
 				// Start the timing section
 				time_start = Clock::now();
-				time_end = time_start + std::chrono::seconds(si.secs);
+				time_end = time_start + chrono::seconds(si.secs);
 
 				// Repeatedly update the screen and check for input until section time is over
 				while ((time_current = Clock::now()) < time_end)
 				{
 					// Print the time left in the section
-					std::chrono::seconds time_left = std::chrono::ceil<std::chrono::seconds>(time_end - time_current);
+					chrono::seconds time_left = chrono::ceil<chrono::seconds>(time_end - time_current);
 					int mins = time_left.count() / 60;
 					int secs = time_left.count() % 60;
 
@@ -406,7 +295,7 @@ int main(int argc, char **argv)
 						// The user input an unrecognized key before getch() returned ERR
 
 						// Recalculate the time until the next screen update
-						std::chrono::milliseconds time_until_screen_update = update_interval - std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - time_input_start);
+						chrono::milliseconds time_until_screen_update = update_interval - chrono::duration_cast<chrono::milliseconds>(Clock::now() - time_input_start);
 
 						if (time_until_screen_update.count() <= 0)
 						{
@@ -436,4 +325,127 @@ int main(int argc, char **argv)
 	}
 
 	return 0;
+}
+
+namespace pomocom
+{
+	// Reads sections from the file at *path where *path is unaltered
+	static void read_sections_raw(const char *path)
+	{
+		SmartFilePtr sfp(path, "r");
+		auto &fp = sfp.m_fp;
+
+		// Get section data
+		for (SectionInfo &s : state.section_info)
+		{
+			// Read in section name
+			try { spdl_readstr(s.name, SECTION_INFO_NAME_LEN, '\n', fp); }
+			catch (Exception &e)
+			{
+				if (e == EXCEPT_OVERRUN)
+				{
+					PERR("max chars read for section info name (over %d)", SECTION_INFO_NAME_LEN - 1);
+					throw e;
+				}
+			}
+
+			// Read in section command
+			try
+			{
+				int c = fgetc(fp);
+				if (c == '+')
+				{
+					// The program run in the command is in pomocom's bin directory
+
+					// Used to construct the proper path to the script
+					std::string buf(state.settings.paths.bin);
+
+					// Add the rest of the command name to buf
+					// The max # of chars to read here is shortened because s.cmd needs to contain the path to the script directory
+					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN - buf.size(), '\n', fp);
+					buf += s.cmd;
+
+					// Copy the final command from buf to s.cmd
+					std::strcpy(s.cmd, buf.c_str());
+				}
+				else
+				{
+					// The program run in the command is in the user's $PATH
+					ungetc(c, fp);
+					spdl_readstr(s.cmd, SECTION_INFO_CMD_LEN, '\n', fp);
+				}
+			}
+			catch (Exception &e)
+			{
+				if (e == EXCEPT_OVERRUN)
+				{
+					PERR("max chars read for section info command (over %d)", SECTION_INFO_CMD_LEN - 1);
+					throw e;
+				}
+			}
+
+			// Read in section duration
+			int minutes, seconds;
+			if (std::fscanf(fp, "%dm%ds\n", &minutes, &seconds) != 2)
+				throw EXCEPT_IO;
+			s.secs = minutes * 60 + seconds;
+		}
+	}
+
+	// Reads sections from the file at *path where *path is altered
+	static void read_sections(const char *path)
+	{
+		state.file_name = path;
+
+		// Altering the path
+		std::string alt_path("");
+		if (std::strlen(path) >= 2 && path[0] == '.' && path[1] == '/')
+		{
+			// Path is relative
+			alt_path += (path + 2);
+		}
+		else
+		{
+			// Path is absolute
+			alt_path += state.settings.paths.section;
+			alt_path += path;
+		}
+		alt_path += ".pomo";
+
+		// Actually loading the section data with the altered path
+		read_sections_raw(alt_path.c_str());
+	}
+
+	// Used to switch sections in interface code
+	static void base_switch_section(Section new_section)
+	{
+		// Change section
+		state.current_section = new_section;
+
+		// Call section command
+		char *cmd = state.section_info[new_section].cmd;
+		int exit_code = std::system(cmd);
+		if (exit_code)
+			PERR("section command \"%s\" exited with nonzero exit code %d", cmd, exit_code);
+	}
+
+	// Handles switching to the next timing section after one finishes
+	static void base_next_section()
+	{
+		if (state.current_section == SECTION_WORK)
+		{
+			if (state.breaks_until_long <= 0)
+			{
+				state.breaks_until_long = state.settings.breaks_until_long_reset;
+				base_switch_section(SECTION_BREAK_LONG);
+			}
+			else
+			{
+				--state.breaks_until_long;
+				base_switch_section(SECTION_BREAK);
+			}
+		}
+		else
+			base_switch_section(SECTION_WORK);
+	}
 }

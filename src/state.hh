@@ -26,7 +26,4 @@ namespace pomocom
 	};
 
 	extern ProgramState state;
-
-	// Initializes program settings paths by modifying state.settings.paths
-	void set_paths();
 }

@@ -3,8 +3,10 @@
  */
 
 #include <cstddef>	// For std::ptrdiff_t and std::byte
-#include <cstdlib>	// For std::atoll() and offsetof
+#include <cstdlib>	// For std::atoll(), std::getenv(), and offsetof
+#include <cstring>	// For strdup()
 #include <stdexcept>	// For std::out_of_range
+#include <string>
 #include <type_traits>	// For std::is_same_v
 #include <unordered_map>
 
@@ -12,6 +14,16 @@
 #include "exceptions.hh"
 #include "fileio.hh"	// For pomocom::SmartFilePtr
 #include "settings.hh"
+
+// Defines setting_name as a setting by creating an entry in settings_map
+// Used in the initializer for settings_map
+#define ADD_SETTING(setting_name)	{\
+						#setting_name,\
+						{\
+							.type = get_setting_type_from_variable_type<decltype(ProgramSettings::setting_name)>(),\
+							.offset = offsetof(ProgramSettings, setting_name)\
+						}\
+					},
 
 namespace pomocom
 {
@@ -32,16 +44,6 @@ namespace pomocom
 		// Cause a compilation error because the variable type cannot be converted to a setting type
 		throw EXCEPT_GENERIC;
 	}
-
-	// Defines setting_name as a setting by creating an entry in settings_map
-	// Used in the initializer for settings_map
-	#define ADD_SETTING(setting_name)	{\
-							#setting_name,\
-							{\
-								.type = get_setting_type_from_variable_type<decltype(ProgramSettings::setting_name)>(),\
-								.offset = offsetof(ProgramSettings, setting_name)\
-							}\
-						},
 
 	// Map of settings
 	const std::unordered_map<std::string_view, SettingDef> settings_map = {
@@ -65,6 +67,49 @@ namespace pomocom
 		{"ncurses", INTERFACE_NCURSES},
 		{"ansi", INTERFACE_ANSI},
 	};
+
+	// Sets default settings values
+	ProgramSettings::ProgramSettings() :
+		interface(INTERFACE_NCURSES),
+		update_interval(1),
+		pause_before_section_start(false),
+		breaks_until_long_reset(3),
+		keys({
+			.pause = 'j',
+			.section_begin = 'j',
+			.section_skip = 'k',
+		})
+		{ settings_set_default_paths(paths); }
+
+	// Set default values for path settings
+	void settings_set_default_paths(ProgramSettings::SettingsPaths &paths)
+	{
+		// Path to home
+		char *path_home;
+
+		// Get path to home based on OS
+#ifdef	__unix__
+		path_home = std::getenv("HOME");
+#else
+#error "compilation target platform unknown"
+#endif
+
+		// Buffer used for manipulating strings
+		std::string buf("");
+
+		// Set path_config
+		buf += path_home;
+		buf += "/.config/pomocom/";
+		paths.config = strdup(buf.c_str());
+		if (paths.config == nullptr)
+		{
+			PERR("failed to allocate mem for config file path");
+			throw EXCEPT_BAD_ALLOC;
+		}
+		
+		// Set other paths which are the same as the config path for now
+		paths.bin = paths.section = paths.config;
+	}
 
 	// Set the setting with name *setting_name to *setting_value
 	void setting_set(ProgramSettings &s, const char *setting_name, const char *setting_value)
