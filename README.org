@@ -43,6 +43,7 @@ Here is an example =pomocom.conf= file:
   update_interval 1
   pause_before_section_start true
   breaks_until_long_reset 2
+  keys.quit q
   keys.pause j
   keys.section_begin j
   keys.section_skip k
@@ -55,6 +56,7 @@ Here is a table of all settings:
 | update_interval            | long   | 1                  | The # of seconds to wait between screen updates                       |
 | pause_before_section_start | bool   | false              | Controls whether or not pomocom pauses before a section starts        |
 | breaks_until_long_break    | int    | 2                  | Controls how many break sections must pass before a long break occurs |
+| keys.quit                  | char   | q                  | Key to quit pomocom                                                   |
 | keys.pause                 | char   | j                  | Key to pause and unpause                                              |
 | keys.section_begin         | char   | j                  | Key to begin the section                                              |
 | keys.section_skip          | char   | k                  | Key to skip to the next section                                       |

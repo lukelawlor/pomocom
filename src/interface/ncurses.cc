@@ -2,8 +2,7 @@
  * ncurses.cc contains functions for using the ncurses interface.
  */
 
-#include <thread>		// For sleeping
-#include <chrono>		// For sleeping
+#include <chrono>		// For std::chrono::high_resolution_clock and more
 
 #include <ncurses.h>
 
@@ -65,9 +64,15 @@ namespace pomocom
 				// Make getch() wait for input before returning
 				timeout(-1);
 
-				// Wait until the section begin key is pressed
-				while (getch() != state.settings.keys.section_begin)
-					;
+				// Wait until the section begin key is pressed or the user quits
+				for (;;)
+				{
+					int c = getch();
+					if (c == state.settings.keys.section_begin)
+						break;
+					if (c == state.settings.keys.quit)
+						goto l_exit;
+				}
 			}
 
 			// Clear the screen
@@ -126,9 +131,15 @@ namespace pomocom
 					// Make getch() wait for input before returning
 					timeout(-1);
 
-					// Wait until pause is pressed again to trigger an unpause
-					while (getch() != keys.pause)
-						;
+					// Wait until pause is pressed again to trigger an unpause or the user quits
+					for (;;)
+					{
+						c = getch();
+						if (c == keys.pause)
+							break;
+						if (c == keys.quit)
+							goto l_exit;
+					}
 					
 					// Unpause
 					
