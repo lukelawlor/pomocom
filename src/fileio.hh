@@ -7,7 +7,6 @@
 #include <cstdio>	// For std::FILE, std::fopen(), and std::fclose()
 
 #include "error.hh"
-#include "exceptions.hh"
 
 namespace pomocom
 {

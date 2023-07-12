@@ -11,7 +11,6 @@
 #include <unordered_map>
 
 #include "error.hh"
-#include "exceptions.hh"
 #include "fileio.hh"	// For pomocom::SmartFilePtr
 #include "settings.hh"
 
@@ -69,8 +68,8 @@ namespace pomocom
 		{"ansi", INTERFACE_ANSI},
 	};
 
-	// Acts the same as strdup() but throws an exception on error
-	static const char *strdup_throwable(const char *str);
+	// Calls strdup() and throws an exception on error
+	static inline const char *try_strdup(const char *str);
 
 	// Sets default settings values
 	ProgramSettings::ProgramSettings() :
@@ -107,9 +106,9 @@ namespace pomocom
 		// Set paths
 		try
 		{
-			paths.config = strdup_throwable(buf.c_str());
-			paths.section = strdup_throwable(paths.config);
-			paths.bin = strdup_throwable(paths.config);
+			paths.config = try_strdup(buf.c_str());
+			paths.section = try_strdup(paths.config);
+			paths.bin = try_strdup(paths.config);
 		}
 		catch (...)
 		{
@@ -147,7 +146,7 @@ namespace pomocom
 				std::free((void *) (*p));
 
 				// Duplicate *setting_value and make the setting point to the new string
-				try{ *p = strdup_throwable(setting_value); }
+				try{ *p = try_strdup(setting_value); }
 				catch (...)
 				{
 					PERR("failed to allocate mem when creating new string for setting \"%s\"", setting_name);
@@ -305,8 +304,8 @@ namespace pomocom
 		std::free((void *) paths.bin);
 	}
 
-	// Acts the same as strdup() but throws an exception on error
-	static const char *strdup_throwable(const char *str)
+	// Calls strdup() and throws an exception on error
+	static inline const char *try_strdup(const char *str)
 	{
 		const char *duplicated_str = strdup(str);
 		if (duplicated_str == nullptr)

@@ -4,7 +4,7 @@
 
 #include <cstdio>	// For std::FILE and std::fgetc()
 
-#include "exceptions.hh"
+#include "error.hh"
 #include "fileio.hh"
 
 namespace pomocom
