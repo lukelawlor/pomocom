@@ -1,5 +1,13 @@
 /*
- * settings.hh contains the settings struct type.
+ * settings.hh contains types used for settings and functions for manipulating settings.
+ *
+ * All program settings are stored in a ProgramSettings object, which is contained in the global state object (see state.hh). Each member of the ProgramSettings object are of a special type designated for settings. In settings.cc, a macro is used to specify which of these members will be included the settings_map map, which keeps track of all settings that end users can modify.
+ *
+ * The key for settings_map is a string that identifies the name of a setting. The value is a SettingDef object which stores the type of setting in an enum and a memory offset of the setting variable relative to the first byte of a ProgramSettings object. This data is needed to know how to modify the value of each setting, which is done in setting_set().
+ *
+ * Each setting type is an integer of varying widths except for SettingString. SettingString variables are assigned their own unique C string in memory to point to. Each time the value of a string setting is changed using setting_set(), the old value of the setting is passed to std::free() and new memory is allocated for the new string value. When pomocom exits, all string settings are freed in settings_free_strings().
+ *
+ * Keywords, or strings that can be converted into numbers, are stored in the settings_keyword_map map.
  */
 
 #pragma once
@@ -110,6 +118,6 @@ namespace pomocom
 	// Read settings file
 	void settings_read(ProgramSettings &s);
 
-	// Free all C strings in path settings
-	void settings_free_paths(ProgramSettings::SettingsPaths &paths);
+	// Free all string settings
+	void settings_free_strings(ProgramSettings::SettingsPaths &paths);
 }

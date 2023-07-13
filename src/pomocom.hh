@@ -1,5 +1,5 @@
 /*
- * pomocom.hh contains section types and other miscellaenous types.
+ * pomocom.hh contains section types.
  */
 
 #pragma once

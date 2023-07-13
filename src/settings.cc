@@ -1,5 +1,7 @@
 /*
- * settings.cc contains the settings_map object.
+ * settings.cc contains functions for initializing and modifying settings.
+ *
+ * See settings.hh for an overview of the code for the settings system.
  */
 
 #include <cstddef>	// For std::ptrdiff_t and std::byte
@@ -296,8 +298,8 @@ namespace pomocom
 		}
 	}
 
-	// Free all C strings in path settings
-	void settings_free_paths(ProgramSettings::SettingsPaths &paths)
+	// Free all string settings
+	void settings_free_strings(ProgramSettings::SettingsPaths &paths)
 	{
 		std::free((void *) paths.config);
 		std::free((void *) paths.section);

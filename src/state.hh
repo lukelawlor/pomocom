@@ -1,5 +1,5 @@
 /*
- * state.hh contains the global program state struct & extern declaration
+ * state.hh contains the global program state struct & extern declaration.
  */
 
 #pragma once

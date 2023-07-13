@@ -1,5 +1,5 @@
 /*
- * fileio.hh contains functions for handling input & output with libc FILE pointers.
+ * fileio.hh contains functions for handling input & output with std::FILE pointers.
  */
 
 #pragma once

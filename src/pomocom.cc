@@ -1,5 +1,5 @@
 /*
- * pomocom.cc contains the main function and section and timing code.
+ * pomocom.cc contains main() and pomo file reading code.
  */
 
 #include <cstring>	// For std::strcpy() and std::strlen()
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	}
 
 	// Cleanup and exit
-	settings_free_paths(state.settings.paths);
+	settings_free_strings(state.settings.paths);
 
 	// Bye bye
 	std::cout << "Hey thanks for using pomocom.\n";

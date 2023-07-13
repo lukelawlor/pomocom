@@ -8,13 +8,12 @@
   - [X] Set up the config directory at ~/.config/pomocom
 - [X] Split up contents in pomocom.cc
 - [X] Show pomo file name in output
-- [ ] Try to execute scripts in the config directory without appending to the section command
 * Optimization
 - [X] Change ncurses =getch()= behavior during pausing
 * Code Polishing
 - [X] Change clock type for ncurses timing
 - [X] Move interface code to files separate from =pomocom.cc=
-- [ ] Write better header comments for files
+- [X] Write better header comments for files
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
 * Settings
@@ -50,3 +49,5 @@
 - [X] strings settings don't have their own memory
 * Low-priority Additions
 - [ ] Search for files in multiple directories in order
+- [ ] Gentoo ebuild for pomocom
+- [ ] Try to execute scripts in the config directory without appending to the section command

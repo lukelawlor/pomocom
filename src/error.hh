@@ -1,5 +1,5 @@
 /*
- * error.hh contains functions for printing error messages.
+ * error.hh contains the PERR() macro for printing error messages, which takes the same arguments as printf(). This file also contains exception codes.
  */
 
 #pragma once

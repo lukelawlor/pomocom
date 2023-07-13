@@ -1,5 +1,5 @@
 /*
- * fileio.cc contains functions for handling input & output with libc FILE pointers.
+ * fileio.cc contains functions for handling input & output with std::FILE pointers.
  */
 
 #include <cstdio>	// For std::FILE and std::fgetc()
