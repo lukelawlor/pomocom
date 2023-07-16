@@ -84,6 +84,8 @@ namespace pomocom
 					int c = getch();
 					if (c == key.section_begin)
 						break;
+					if (c == key.section_skip)
+						goto l_section_end;
 					if (c == key.quit)
 						goto l_exit;
 					if (c == KEY_RESIZE)
@@ -196,6 +198,7 @@ namespace pomocom
 					goto l_get_user_input;
 				}
 			}
+		l_section_end:
 			base_next_section();
 		}
 	l_exit:
