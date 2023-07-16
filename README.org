@@ -43,10 +43,10 @@ Here is an example =pomocom.conf= file:
   update_interval 1
   pause_before_section_start true
   breaks_until_long_reset 2
-  keys.quit q
-  keys.pause j
-  keys.section_begin j
-  keys.section_skip k
+  key.quit q
+  key.pause j
+  key.section_begin j
+  key.section_skip k
   ncurses.color.pomocom.fg blue
   ncurses.color.pomocom.bg default
   ncurses.color.section_work.fg yellow
@@ -58,22 +58,29 @@ Here is an example =pomocom.conf= file:
 #+end_src
 
 Here is a table of all settings:
-| Name                       | Type   | Default Value      | Description                                                           |
-|----------------------------+--------+--------------------+-----------------------------------------------------------------------|
-| interface                  | int    | ncurses            | The type of interface pomocom will present                            |
-| update_interval            | long   | 1                  | The # of seconds to wait between screen updates                       |
-| pause_before_section_start | bool   | false              | Controls whether or not pomocom pauses before a section starts        |
-| breaks_until_long_break    | int    | 2                  | Controls how many break sections must pass before a long break occurs |
-| keys.quit                  | char   | q                  | Key to quit pomocom                                                   |
-| keys.pause                 | char   | j                  | Key to pause and unpause                                              |
-| keys.section_begin         | char   | j                  | Key to begin the section                                              |
-| keys.section_skip          | char   | k                  | Key to skip to the next section                                       |
-| paths.config               | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomocom.conf resides      |
-| paths.section              | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomo files reside         |
-| paths.bin                  | string | ~/.config/pomocom/ | Path (ending with /) to the directory where executable scripts reside |
-| ncurses.color.pomocom.fg   | short  | yellow             |                                                                       |
+| Name                           | Type   | Default Value      | Description                                                           |
+|--------------------------------+--------+--------------------+-----------------------------------------------------------------------|
+| interface                      | int    | ncurses            | The type of interface pomocom will present                            |
+| update_interval                | long   | 1                  | The # of seconds to wait between screen updates                       |
+| pause_before_section_start     | bool   | false              | Controls whether or not pomocom pauses before a section starts        |
+| breaks_until_long_break        | int    | 2                  | Controls how many break sections must pass before a long break occurs |
+| key.quit                       | char   | q                  | Key to quit pomocom                                                   |
+| key.pause                      | char   | j                  | Key to pause and unpause                                              |
+| key.section_begin              | char   | j                  | Key to begin the section                                              |
+| key.section_skip               | char   | k                  | Key to skip to the next section                                       |
+| path.config                    | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomocom.conf resides      |
+| path.section                   | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomo files reside         |
+| path.bin                       | string | ~/.config/pomocom/ | Path (ending with /) to the directory where executable scripts reside |
+| ncurses.color.pomocom.fg       | short  | blue               | Foreground color for the first line of text in the ncurses interface  |
+| ncurses.color.pomocom.bg       | short  | default            | Background color for the first line of text in the ncurses interface  |
+| ncurses.color.section_work.fg  | short  | yellow             | Foreground color for the work section name                            |
+| ncurses.color.section_work.bg  | short  | default            | Background color for the work section name                            |
+| ncurses.color.section_break.fg | short  | green              | Foreground color for the break section names                          |
+| ncurses.color.section_break.bg | short  | default            | Background color for the break section names                          |
+| ncurses.color.time.fg          | short  | default            | Foreground color for the time remaining in a section                  |
+| ncurses.color.time.bg          | short  | default            | Background color for the time remaining in a section                  |
 
-Below is a table of all keywords. You can also see the initializers for keywords in =src/settings.cc=:
+Below is a table of all keywords. You can also see the initializers for keywords in =src/settings.cc=.
 | Keyword | Intended For   | Value in Source Code | Literal Value |
 |---------+----------------+----------------------+---------------|
 | true    | booleans       | 1                    | 1             |

@@ -70,17 +70,17 @@ namespace pomocom
 		SettingInt breaks_until_long_reset;
 
 		// Keyboard controls
-		struct SettingsKeys{
+		struct Key{
 			SettingChar quit;
 			SettingChar pause;
 			SettingChar section_begin;
 			SettingChar section_skip;
-		} keys;
+		} key;
 
 		// Paths
 		// These should all be C strings that end in with '/'
 		// IMPORTANT: each path should point to unique memory because std::free() will be called on all of them when pomocom exits
-		struct SettingsPaths{
+		struct Path{
 			// Path to directory where config files are stored
 			SettingString config;
 
@@ -90,7 +90,7 @@ namespace pomocom
 			// Path to directory that script files are stored in
 			SettingString bin;
 
-		} paths;
+		} path;
 
 		struct Ncurses{
 			struct Color{
@@ -137,7 +137,7 @@ namespace pomocom
 	extern const std::unordered_map<std::string_view, SettingInt> settings_keyword_map;
 
 	// Set default values for path settings
-	void settings_set_default_paths(ProgramSettings::SettingsPaths &paths);
+	void settings_set_default_paths(ProgramSettings::Path &path);
 
 	// Set the setting with name *setting_name to *setting_value
 	void setting_set(ProgramSettings &s, const char *setting_name, const char *setting_value);
@@ -146,5 +146,5 @@ namespace pomocom
 	void settings_read(ProgramSettings &s);
 
 	// Free all string settings
-	void settings_free_strings(ProgramSettings::SettingsPaths &paths);
+	void settings_free_strings(ProgramSettings &s);
 }

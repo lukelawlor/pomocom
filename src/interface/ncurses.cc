@@ -59,7 +59,7 @@ namespace pomocom
 				attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
 				printw("next up: %s (%dm%ds)\n", si.name, si.secs / 60, si.secs % 60);
 				attron(COLOR_PAIR(CP_TIME));
-				printw("press %c to begin.", state.settings.keys.section_begin);
+				printw("press %c to begin.", state.settings.key.section_begin);
 				refresh();
 
 				// Make getch() wait for input before returning
@@ -69,9 +69,9 @@ namespace pomocom
 				for (;;)
 				{
 					int c = getch();
-					if (c == state.settings.keys.section_begin)
+					if (c == state.settings.key.section_begin)
 						break;
-					if (c == state.settings.keys.quit)
+					if (c == state.settings.key.quit)
 						goto l_exit;
 				}
 			}
@@ -111,7 +111,7 @@ namespace pomocom
 				refresh();
 
 				// Get user input
-				auto &keys = state.settings.keys;
+				auto &key = state.settings.key;
 				auto time_input_start = Clock::now();
 
 				// Expect to wait update_interval milliseconds for getch() to return
@@ -119,7 +119,7 @@ namespace pomocom
 
 			l_get_user_input:
 				int c = getch();
-				if (c == keys.pause)
+				if (c == key.pause)
 				{
 					// Pause
 
@@ -136,9 +136,9 @@ namespace pomocom
 					for (;;)
 					{
 						c = getch();
-						if (c == keys.pause)
+						if (c == key.pause)
 							break;
-						if (c == keys.quit)
+						if (c == key.quit)
 							goto l_exit;
 					}
 					
@@ -150,12 +150,12 @@ namespace pomocom
 					// Go back to updating the screen
 					continue;
 				}
-				else if (c == keys.section_skip)
+				else if (c == key.section_skip)
 				{
 					// Skip to next section by exiting the loop
 					break;
 				}
-				else if (c == keys.quit)
+				else if (c == key.quit)
 				{
 					// Quit
 					goto l_exit;

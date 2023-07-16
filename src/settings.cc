@@ -55,13 +55,13 @@ namespace pomocom
 		ADD_SETTING(update_interval)
 		ADD_SETTING(pause_before_section_start)
 		ADD_SETTING(breaks_until_long_reset)
-		ADD_SETTING(keys.quit)
-		ADD_SETTING(keys.pause)
-		ADD_SETTING(keys.section_begin)
-		ADD_SETTING(keys.section_skip)
-		ADD_SETTING(paths.config)
-		ADD_SETTING(paths.section)
-		ADD_SETTING(paths.bin)
+		ADD_SETTING(key.quit)
+		ADD_SETTING(key.pause)
+		ADD_SETTING(key.section_begin)
+		ADD_SETTING(key.section_skip)
+		ADD_SETTING(path.config)
+		ADD_SETTING(path.section)
+		ADD_SETTING(path.bin)
 		ADD_SETTING(ncurses.color.pomocom.fg)
 		ADD_SETTING(ncurses.color.pomocom.bg)
 		ADD_SETTING(ncurses.color.section_work.fg)
@@ -104,16 +104,36 @@ namespace pomocom
 		update_interval(1),
 		pause_before_section_start(false),
 		breaks_until_long_reset(3),
-		keys({
+		key({
 			.quit = 'q',
 			.pause = 'j',
 			.section_begin = 'j',
 			.section_skip = 'k',
+		}),
+		ncurses({
+			.color = {
+				.pomocom = {
+					COLOR_BLUE,
+					-1,
+				},
+				.section_work = {
+					COLOR_YELLOW,
+					-1,
+				},
+				.section_break = {
+					COLOR_GREEN,
+					-1,
+				},
+				.time = {
+					-1,
+					-1,
+				},
+			},
 		})
-		{ settings_set_default_paths(paths); }
+		{ settings_set_default_paths(path); }
 
 	// Set default values for path settings
-	void settings_set_default_paths(ProgramSettings::SettingsPaths &paths)
+	void settings_set_default_paths(ProgramSettings::Path &path)
 	{
 		// Path to home
 		char *path_home;
@@ -133,9 +153,9 @@ namespace pomocom
 		// Set paths
 		try
 		{
-			paths.config = try_strdup(buf.c_str());
-			paths.section = try_strdup(paths.config);
-			paths.bin = try_strdup(paths.config);
+			path.config = try_strdup(buf.c_str());
+			path.section = try_strdup(path.config);
+			path.bin = try_strdup(path.config);
 		}
 		catch (...)
 		{
@@ -244,7 +264,7 @@ namespace pomocom
 	void settings_read(ProgramSettings &s)
 	{
 		// Get the path to the settings file (pomocom.conf)
-		std::string path_to_pomocom_conf(s.paths.config);
+		std::string path_to_pomocom_conf(s.path.config);
 		path_to_pomocom_conf += "pomocom.conf";
 
 		// Open the file
@@ -330,11 +350,11 @@ namespace pomocom
 	}
 
 	// Free all string settings
-	void settings_free_strings(ProgramSettings::SettingsPaths &paths)
+	void settings_free_strings(ProgramSettings &s)
 	{
-		std::free((void *) paths.config);
-		std::free((void *) paths.section);
-		std::free((void *) paths.bin);
+		std::free((void *) s.path.config);
+		std::free((void *) s.path.section);
+		std::free((void *) s.path.bin);
 	}
 
 	// Calls strdup() and throws an exception on error

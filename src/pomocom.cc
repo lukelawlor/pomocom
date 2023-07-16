@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	}
 
 	// Cleanup and exit
-	settings_free_strings(state.settings.paths);
+	settings_free_strings(state.settings);
 
 	// Bye bye
 	std::cout << "Hey thanks for using pomocom.\n";
@@ -115,7 +115,7 @@ namespace pomocom
 					// The program run in the command is in pomocom's bin directory
 
 					// Used to construct the proper path to the script
-					std::string buf(state.settings.paths.bin);
+					std::string buf(state.settings.path.bin);
 
 					// Add the rest of the command name to buf
 					// The max # of chars to read here is shortened because s.cmd needs to contain the path to the script directory
@@ -164,7 +164,7 @@ namespace pomocom
 		else
 		{
 			// Path is absolute
-			alt_path += state.settings.paths.section;
+			alt_path += state.settings.path.section;
 			alt_path += path;
 		}
 		alt_path += ".pomo";
