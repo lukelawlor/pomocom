@@ -38,6 +38,7 @@ namespace pomocom
 		ST_STRING,
 		ST_BOOL,
 		ST_INT,
+		ST_SHORT,
 		ST_LONG,
 	};
 
@@ -46,12 +47,14 @@ namespace pomocom
 	typedef const char *SettingString;
 	typedef std::uint8_t SettingBool;
 	typedef std::int8_t SettingInt;
+	typedef std::int16_t SettingShort;
 	typedef std::int64_t SettingLong;
 
 	// Assert that SettingLong is the largest of the setting types besides SettingString
 	static_assert(sizeof(SettingLong) > sizeof(SettingBool), SETTING_LONG_ASSERT_MSG);
 	static_assert(sizeof(SettingLong) > sizeof(SettingChar), SETTING_LONG_ASSERT_MSG);
 	static_assert(sizeof(SettingLong) > sizeof(SettingInt), SETTING_LONG_ASSERT_MSG);
+	static_assert(sizeof(SettingLong) > sizeof(SettingShort), SETTING_LONG_ASSERT_MSG);
 
 	// Program settings
 	struct ProgramSettings{
@@ -88,6 +91,30 @@ namespace pomocom
 			SettingString bin;
 
 		} paths;
+
+		struct Ncurses{
+			struct Color{
+				struct ColorPair{
+					// Foreground color
+					SettingShort fg;
+
+					// Background color
+					SettingShort bg;
+				};
+
+				// Used for the first line of text containing "pomocom:"
+				ColorPair pomocom;
+
+				// Used for the name of the work section
+				ColorPair section_work;
+
+				// Used for the name of the break sections
+				ColorPair section_break;
+
+				// Used for the time remaining in the section
+				ColorPair time;
+			} color;
+		} ncurses;
 
 		// Sets default settings values
 		ProgramSettings();

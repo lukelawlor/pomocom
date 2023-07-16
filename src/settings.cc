@@ -12,6 +12,8 @@
 #include <type_traits>	// For std::is_same_v
 #include <unordered_map>
 
+#include <ncurses.h>	// For COLOR_*
+
 #include "error.hh"
 #include "fileio.hh"	// For pomocom::SmartFilePtr
 #include "settings.hh"
@@ -38,6 +40,7 @@ namespace pomocom
 	{
 		if constexpr (std::is_same_v<T, SettingBool>) return ST_BOOL;
 		if constexpr (std::is_same_v<T, SettingInt>) return ST_INT;
+		if constexpr (std::is_same_v<T, SettingShort>) return ST_SHORT;
 		if constexpr (std::is_same_v<T, SettingLong>) return ST_LONG;
 		if constexpr (std::is_same_v<T, SettingChar>) return ST_CHAR;
 		if constexpr (std::is_same_v<T, SettingString>) return ST_STRING;
@@ -59,15 +62,37 @@ namespace pomocom
 		ADD_SETTING(paths.config)
 		ADD_SETTING(paths.section)
 		ADD_SETTING(paths.bin)
+		ADD_SETTING(ncurses.color.pomocom.fg)
+		ADD_SETTING(ncurses.color.pomocom.bg)
+		ADD_SETTING(ncurses.color.section_work.fg)
+		ADD_SETTING(ncurses.color.section_work.bg)
+		ADD_SETTING(ncurses.color.section_break.fg)
+		ADD_SETTING(ncurses.color.section_break.bg)
+		ADD_SETTING(ncurses.color.time.fg)
+		ADD_SETTING(ncurses.color.time.bg)
 	};
 
 	// Map of keywords that translate into SettingInt values
 	// IMPORTANT: the keys should not start with a number because that will be seen as an indication that a setting value is a number
 	const std::unordered_map<std::string_view, SettingInt> settings_keyword_map = {
+		// Booleans
 		{"true", 1},
 		{"false", 0},
+
+		// Interfaces
 		{"ncurses", INTERFACE_NCURSES},
 		{"ansi", INTERFACE_ANSI},
+
+		// Ncurses colors
+		{"default", -1},
+		{"black", COLOR_BLACK},
+		{"red", COLOR_RED},
+		{"green", COLOR_GREEN},
+		{"yellow", COLOR_YELLOW},
+		{"blue", COLOR_BLUE},
+		{"magenta", COLOR_MAGENTA},
+		{"cyan", COLOR_CYAN},
+		{"white", COLOR_WHITE},
 	};
 
 	// Calls strdup() and throws an exception on error
@@ -193,6 +218,12 @@ namespace pomocom
 					{
 						auto p = (SettingInt *) setting_ptr;
 						*p = static_cast<SettingInt>(setting_value_number);
+						break;
+					}
+				case ST_SHORT:
+					{
+						auto p = (SettingShort *) setting_ptr;
+						*p = static_cast<SettingShort>(setting_value_number);
 						break;
 					}
 				case ST_LONG:

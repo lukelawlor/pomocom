@@ -34,7 +34,7 @@
   - [ ] Handle resizing window
   - [-] Colors
     - [X] Use
-    - [ ] Configuration
+    - [X] Configuration
     - [ ] Handle systems with no colors
 * Documentation
 - [X] Readme

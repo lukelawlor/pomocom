@@ -1,9 +1,9 @@
 * Pomocom
-A simple, fast, and customizable pomodoro timer with multiple interfaces
+A simple, fast, and configurable pomodoro timer with multiple interfaces
 
 [[./doc/ncurses.png]]
 
-* Interface Overviews
+* Interfaces
 ** ANSI
 This interface is displayed with ANSI terminal escape codes. It is the most lightweight interface, but it lacks several features, including:
 - colors
@@ -35,7 +35,7 @@ Settings come in two distinct types: strings and numbers.
 
 String settings can hold strings with spaces in them, but these spaces must come after the space character after the setting name.
 
-Number settings can be split into multiple subtypes with different byte sizes: bool (1 byte), char (1 byte), int (1 byte), and long (8 bytes). These settings can also be set to string values that pomocom converts into numbers using an internal table of *keywords* (ex. you can set the setting =interface= to =ncurses= because =ncurses= is defined as a keyword that translates to the number 1). See the end of this section for a table of all keywords.
+Number settings can be split into multiple subtypes with different byte sizes: bool (1 byte), char (1 byte), int (1 byte), short (2 bytes), and long (8 bytes). These settings can also be set to string values that pomocom converts into numbers using an internal table of *keywords* (ex. you can set the setting =interface= to =ncurses= because =ncurses= is defined as a keyword that translates to the number 1). See the end of this section for a table of all keywords.
 
 Here is an example =pomocom.conf= file:
 #+begin_src
@@ -47,6 +47,14 @@ Here is an example =pomocom.conf= file:
   keys.pause j
   keys.section_begin j
   keys.section_skip k
+  ncurses.color.pomocom.fg blue
+  ncurses.color.pomocom.bg default
+  ncurses.color.section_work.fg yellow
+  ncurses.color.section_work.bg default
+  ncurses.color.section_break.fg green
+  ncurses.color.section_break.bg default
+  ncurses.color.time.fg default
+  ncurses.color.time.bg default
 #+end_src
 
 Here is a table of all settings:
@@ -63,14 +71,24 @@ Here is a table of all settings:
 | paths.config               | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomocom.conf resides      |
 | paths.section              | string | ~/.config/pomocom/ | Path (ending with /) to the directory where pomo files reside         |
 | paths.bin                  | string | ~/.config/pomocom/ | Path (ending with /) to the directory where executable scripts reside |
+| ncurses.color.pomocom.fg   | short  | yellow             |                                                                       |
 
-Here is a table of all keywords:
-| Keyword | Value                                                  |
-|---------+--------------------------------------------------------|
-| true    | 1                                                      |
-| false   | 0                                                      |
-| ansi    | 0 (internally set to INTERFACE_ANSI in source code)    |
-| ncurses | 1 (internally set to INTERFACE_NCURSES in source code) |
+Below is a table of all keywords. You can also see the initializers for keywords in =src/settings.cc=:
+| Keyword | Intended For   | Value in Source Code | Literal Value |
+|---------+----------------+----------------------+---------------|
+| true    | booleans       | 1                    | 1             |
+| false   | booleans       | 0                    | 0             |
+| ansi    | interface      | INTERFACE_ANSI       | 0             |
+| ncurses | interface      | INTERFACE_NCURSES    | 1             |
+| default | ncurses colors | -1                   | -1            |
+| black   | ncurses colors | COLOR_BLACK          | ?             |
+| red     | ncurses colors | COLOR_RED            | ?             |
+| green   | ncurses colors | COLOR_GREEN          | ?             |
+| yellow  | ncurses colors | COLOR_YELLOW         | ?             |
+| blue    | ncurses colors | COLOR_BLUE           | ?             |
+| magenta | ncurses colors | COLOR_MAGENTA        | ?             |
+| cyan    | ncurses colors | COLOR_CYAN           | ?             |
+| white   | ncurses colors | COLOR_WHITE          | ?             |
 
 ** Pomo Files
 Pomo files are written in the following format:
@@ -117,5 +135,6 @@ If present, the second command line argument is used to fetch the pomo file to r
 ** Default Controls
 These are not available in the ANSI interface.
 
-- j :: Begins the timing section, pauses, and unpauses
-- k :: Skips the section
+- j :: Begin the timing section, pause, and unpause
+- k :: Skip the section
+- q :: Quit

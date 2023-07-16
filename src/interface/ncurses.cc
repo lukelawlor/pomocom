@@ -8,6 +8,7 @@
 
 #include "../error.hh"
 #include "../pomocom.hh"
+#include "../settings.hh"
 #include "../state.hh"
 #include "base.hh"
 
@@ -27,7 +28,7 @@ namespace pomocom
 	static inline void interface_ncurses_exit();
 
 	// Calls init_pair() and throws an exception on error
-	static inline void try_init_pair(short pair, short f, short b);
+	static inline void try_init_pair(short pair, ProgramSettings::Ncurses::Color::ColorPair cp);
 
 	void interface_ncurses_loop()
 	{
@@ -188,7 +189,6 @@ namespace pomocom
 			}
 			base_next_section();
 		}
-
 	l_exit:
 		interface_ncurses_exit();
 	}
@@ -226,11 +226,14 @@ namespace pomocom
 			throw EXCEPT_GENERIC;
 		}
 
+		// Alias for ncurses color settings
+		auto &color = state.settings.ncurses.color;
+
 		// Set colors
-		try_init_pair(CP_POMOCOM, COLOR_BLUE, -1);
-		try_init_pair(CP_SECTION_WORK, COLOR_YELLOW, -1);
-		try_init_pair(CP_SECTION_BREAK, COLOR_GREEN, -1);
-		try_init_pair(CP_TIME, -1, -1);
+		try_init_pair(CP_POMOCOM,	color.pomocom);
+		try_init_pair(CP_SECTION_WORK,	color.section_work);
+		try_init_pair(CP_SECTION_BREAK, color.section_break);
+		try_init_pair(CP_TIME,		color.time);
 	}
 
 	static inline void interface_ncurses_exit()
@@ -240,9 +243,9 @@ namespace pomocom
 	}
 
 	// Calls init_pair() and throws an exception on error
-	static inline void try_init_pair(short pair, short f, short b)
+	static inline void try_init_pair(short pair, ProgramSettings::Ncurses::Color::ColorPair cp)
 	{
-		if (init_pair(pair, f, b) == ERR)
+		if (init_pair(pair, cp.fg, cp.bg) == ERR)
 		{
 			PERR("failed to init color pair %d", pair);
 			throw EXCEPT_GENERIC;
