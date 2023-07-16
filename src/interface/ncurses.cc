@@ -27,6 +27,24 @@ namespace pomocom
 	static inline void interface_ncurses_init();
 	static inline void interface_ncurses_exit();
 
+	// Print info about the upcoming section
+	static void print_upcoming_section(SectionInfo &si);
+
+	// Print the first line of text, which contains "pomocom:"
+	static void print_pomocom();
+
+	// Print the timing section name
+	static void print_section();
+
+	// Print the time left in a section
+	static void print_time_left(int mins, int secs);
+
+	// Re-print the screen when KEY_RESIZE is detected during a timing section
+	static void reprint_timing_screen(int mins, int secs);
+
+	// Using attron(), activate the color pair for the section name text depending on the type of current section
+	static inline void activate_section_color();
+
 	// Calls init_pair() and throws an exception on error
 	static inline void try_init_pair(short pair, ProgramSettings::Ncurses::Color::ColorPair cp);
 
@@ -34,11 +52,14 @@ namespace pomocom
 	{
 		interface_ncurses_init();
 
-		// Store update interval in milliseconds
-		chrono::milliseconds update_interval(1000 * state.settings.update_interval);
-
 		// Alias for clock type
 		using Clock = chrono::high_resolution_clock;
+
+		// Alias for key settings
+		auto &key = state.settings.key;
+
+		// Store update interval in milliseconds
+		chrono::milliseconds update_interval(1000 * state.settings.update_interval);
 
 		// Start and end time points of timing section
 		chrono::time_point<Clock> time_start, time_current, time_end;
@@ -52,15 +73,7 @@ namespace pomocom
 			// Pause before starting the section
 			if (state.settings.pause_before_section_start)
 			{
-				// Print info about the upcoming section
-				clear();
-				attron(COLOR_PAIR(CP_POMOCOM));
-				printw("pomocom: %s\n", state.file_name);
-				attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
-				printw("next up: %s (%dm%ds)\n", si.name, si.secs / 60, si.secs % 60);
-				attron(COLOR_PAIR(CP_TIME));
-				printw("press %c to begin.", state.settings.key.section_begin);
-				refresh();
+				print_upcoming_section(si);
 
 				// Make getch() wait for input before returning
 				timeout(-1);
@@ -69,26 +82,22 @@ namespace pomocom
 				for (;;)
 				{
 					int c = getch();
-					if (c == state.settings.key.section_begin)
+					if (c == key.section_begin)
 						break;
-					if (c == state.settings.key.quit)
+					if (c == key.quit)
 						goto l_exit;
+					if (c == KEY_RESIZE)
+					{
+						// Prevent KEY_RESIZE from being read infinitely
+						flushinp();
+						print_upcoming_section(si);
+					}
 				}
 			}
 
-			// Clear the screen
 			clear();
-			
-			// Print pomocom & pomo file name
-			attron(COLOR_PAIR(CP_POMOCOM));
-			printw("pomocom: %s\n", state.file_name);
-
-			// Print section name
-			attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
-			printw("%s\n", si.name);
-
-			// Set the color for the time
-			attron(COLOR_PAIR(CP_TIME));
+			print_pomocom();
+			print_section();
 
 			// Start the timing section
 			time_start = Clock::now();
@@ -102,16 +111,10 @@ namespace pomocom
 				int mins = time_left.count() / 60;
 				int secs = time_left.count() % 60;
 
-				// Move to the area of the screen where the time left is displayed
-				move(2, 0);
-
-				// Print time left
-				clrtobot();
-				printw("%dm %ds", mins, secs);
+				print_time_left(mins, secs);
 				refresh();
 
 				// Get user input
-				auto &key = state.settings.key;
 				auto time_input_start = Clock::now();
 
 				// Expect to wait update_interval milliseconds for getch() to return
@@ -165,26 +168,32 @@ namespace pomocom
 					// If getch() returns ERR, the user did not input anything, so we don't need to wait any longer until the time remaining can be reprinted
 					continue;
 				}
+				else if (c == KEY_RESIZE)
+				{
+					reprint_timing_screen(mins, secs);
+
+					// Prevent KEY_RESIZE from being read infinitely
+					flushinp();
+				}
+
+				// If code execution reaches here, either the user has input an unrecognized key or performed an action that doesn't cause a continue, break, or goto.
+				// In both such cases, getch() has not returned ERR, so the time until the next screen update has not yet passed
+
+				// Recalculate the time until the next screen update
+				chrono::milliseconds time_until_screen_update = update_interval - chrono::duration_cast<chrono::milliseconds>(Clock::now() - time_input_start);
+
+				if (time_until_screen_update.count() <= 0)
+				{
+					// A screen update should happen now
+					continue;
+				}
 				else
 				{
-					// The user input an unrecognized key before getch() returned ERR
+					// Reset timeout to reflect the change to the time until the next screen update
+					timeout(time_until_screen_update.count());
 
-					// Recalculate the time until the next screen update
-					chrono::milliseconds time_until_screen_update = update_interval - chrono::duration_cast<chrono::milliseconds>(Clock::now() - time_input_start);
-
-					if (time_until_screen_update.count() <= 0)
-					{
-						// A screen update should happen now
-						continue;
-					}
-					else
-					{
-						// Reset timeout to reflect the change to the time until the next screen update
-						timeout(time_until_screen_update.count());
-
-						// Try to get more user input before the next screen update
-						goto l_get_user_input;
-					}
+					// Try to get more user input before the next screen update
+					goto l_get_user_input;
 				}
 			}
 			base_next_section();
@@ -240,6 +249,68 @@ namespace pomocom
 	{
 		// Exit ncurses
 		endwin();
+	}
+
+	// Print info about the upcoming section
+	static void print_upcoming_section(SectionInfo &si)
+	{
+		clear();
+		print_pomocom();
+
+		// Print the upcoming section name and duration
+		move(1, 0);
+		activate_section_color();
+		printw("next up: %s (%dm%ds)\n", si.name, si.secs / 60, si.secs % 60);
+
+		// Print section begin key
+		attron(COLOR_PAIR(CP_TIME));
+		printw("press %c to begin.", state.settings.key.section_begin);
+
+		refresh();
+	}
+
+	// Re-print the screen when KEY_RESIZE is detected during a timing section
+	static void reprint_timing_screen(int mins, int secs)
+	{
+		clear();
+		print_pomocom();
+		print_section();
+		print_time_left(mins, secs);
+		refresh();
+	}
+
+	// Print the first line of text, which contains "pomocom:"
+	static void print_pomocom()
+	{
+		move(0, 0);
+		attron(COLOR_PAIR(CP_POMOCOM));
+		printw("pomocom: %s", state.file_name);
+	}
+
+	// Print the timing section name
+	static void print_section()
+	{
+		move(1, 0);
+		activate_section_color();
+		printw("%s", state.section_info[state.current_section].name);
+	}
+
+	// Print the time left in a section
+	static void print_time_left(int mins, int secs)
+	{
+		move(2, 0);
+
+		// Clear the previous time left on the screen
+		clrtoeol();
+
+		attron(COLOR_PAIR(CP_TIME));
+		printw("%dm %ds", mins, secs);
+	}
+
+	// Using attron(), activate the color pair for the section name text depending on the type of current section
+	static inline void activate_section_color()
+	{
+		attron(COLOR_PAIR(state.current_section == SECTION_WORK ? CP_SECTION_WORK : CP_SECTION_BREAK));
 	}
 
 	// Calls init_pair() and throws an exception on error

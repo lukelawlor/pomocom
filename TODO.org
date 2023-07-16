@@ -31,7 +31,7 @@
     - [X] Skipping to the next section
     - [X] Enabling/disabling pauses between sections
     - [X] Rebinding of controls
-  - [ ] Handle resizing window
+  - [X] Handle resizing window
   - [-] Colors
     - [X] Use
     - [X] Configuration
