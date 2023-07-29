@@ -39,6 +39,9 @@ namespace pomocom
 
 		// Buffer overrun was stopped
 		EXCEPT_OVERRUN,
+
+		// Invalid setting
+		EXCEPT_BAD_SETTING,
 	};
 
 	// Prints the start of an error message

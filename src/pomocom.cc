@@ -26,6 +26,8 @@ int main(int argc, char **argv)
 {
 	using namespace pomocom;
 
+	int exit_code = EXIT_SUCCESS;
+
 	try
 	{
 		// Read pomocom.conf
@@ -120,22 +122,23 @@ int main(int argc, char **argv)
 			break;
 		default:
 			PERR("unknown interface");
-			return EXIT_FAILURE;
+			throw EXCEPT_BAD_SETTING;
 		}
 	}
 	catch (...)
 	{
 		// Don't print an error message because one should already have printed
-		return EXIT_FAILURE;
+		exit_code = EXIT_FAILURE;
 	}
 
 	// Cleanup and exit
 	settings_free_strings(state.settings);
 
 	// Bye bye
-	std::cout << "Hey thanks for using pomocom.\n";
+	if (exit_code == EXIT_SUCCESS)
+		std::cout << "Hey thanks for using pomocom.\n";
 
-	return EXIT_SUCCESS;
+	return exit_code;
 }
 
 namespace pomocom
