@@ -18,10 +18,10 @@
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
 * Settings
 - [X] Create config file system
+- [X] Setting settings with command line args
 - [ ] Config file syntax changes
   - [ ] Comments
   - [ ] Using equals sign
-- [ ] Setting settings with command line args
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
 - [-] ncurses
