@@ -105,6 +105,8 @@ namespace pomocom
 		interface(INTERFACE_NCURSES),
 		update_interval(1),
 		pause_before_section_start(false),
+		set_terminal_title(true),
+		set_terminal_title_countdown(true),
 		breaks_until_long_reset(3),
 		key({
 			.quit = 'q',
