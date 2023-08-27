@@ -70,6 +70,8 @@ namespace pomocom
 		ADD_SETTING(ncurses.color.section_break.bg)
 		ADD_SETTING(ncurses.color.time.fg)
 		ADD_SETTING(ncurses.color.time.bg)
+		ADD_SETTING(set_terminal_title)
+		ADD_SETTING(set_terminal_title_countdown)
 	};
 
 	// Map of keywords that translate into SettingInt values

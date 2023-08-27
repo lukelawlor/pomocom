@@ -114,6 +114,8 @@ namespace pomocom
 				int secs = time_left.count() % 60;
 
 				print_time_left(mins, secs);
+				if (state.settings.set_terminal_title_countdown)
+					base_set_terminal_title_countdown(mins, secs, si.name);
 				refresh();
 
 				// Get user input

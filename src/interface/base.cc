@@ -3,10 +3,13 @@
  */
 
 #include <cstdlib>		// For std::system()
+#include <sstream>
+#include <string>
 
 #include "../error.hh"
 #include "../pomocom.hh"	// For Section
 #include "../state.hh"
+#include "../terminal_title.hh"
 #include "base.hh"
 
 namespace pomocom
@@ -32,6 +35,14 @@ namespace pomocom
 		}
 		else
 			base_switch_section(SECTION_WORK);
+	}
+
+	// Sets the terminal title to a countdown timer
+	void base_set_terminal_title_countdown(int mins, int secs, std::string_view section_name)
+	{
+		std::stringstream title;
+		title << mins << "m " << secs << "s - pomocom - " << state.file_name << " - " << section_name;
+		set_terminal_title(title.view());
 	}
 
 	// Used to switch sections in interface code

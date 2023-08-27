@@ -8,6 +8,7 @@
   - [X] Set up the config directory at ~/.config/pomocom
 - [X] Split up contents in pomocom.cc
 - [X] Show pomo file name in output
+- [X] Set terminal title
 * Optimization
 - [X] Change ncurses =getch()= behavior during pausing
 * Code Polishing
@@ -19,6 +20,7 @@
 * Settings
 - [X] Create config file system
 - [X] Setting settings with command line args
+- [ ] Toggling the running of section commands when skipping sections
 - [ ] Config file syntax changes
   - [ ] Comments
   - [ ] Using equals sign

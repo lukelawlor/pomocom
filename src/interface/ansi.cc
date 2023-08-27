@@ -62,8 +62,11 @@ namespace pomocom
 				int mins = time_left / 60;
 				int secs = time_left % 60;
 				std::cout << AT_CLEAR_LINE;
-				std::cout << mins << "m " << secs << "s" << std::flush;
+				std::cout << mins << "m " << secs << "s";
+				if (state.settings.set_terminal_title_countdown)
+					base_set_terminal_title_countdown(mins, secs, si.name);
 				std::this_thread::sleep_for(std::chrono::seconds(state.settings.update_interval));
+
 			}
 
 			base_next_section();

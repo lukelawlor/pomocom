@@ -66,6 +66,12 @@ namespace pomocom
 
 		SettingBool pause_before_section_start;
 
+		// Sets the terminal title to "pomocom - (pomo file name)"
+		SettingBool set_terminal_title;
+
+		// On screen updates, sets the terminal title to "(mins & secs) - pomocom - (pomo file name) - (section name)"
+		SettingBool set_terminal_title_countdown;
+
 		// Number of breaks until a long break
 		SettingInt breaks_until_long_reset;
 

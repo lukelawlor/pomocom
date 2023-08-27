@@ -4,12 +4,14 @@
 
 #include <cstring>	// For std::strcpy() and std::strlen()
 #include <iostream>
+#include <sstream>
 
 #include "error.hh"
 #include "fileio.hh"
 #include "interface/all.hh"
 #include "pomocom.hh"
 #include "state.hh"
+#include "terminal_title.hh"
 
 namespace pomocom
 {
@@ -109,6 +111,13 @@ int main(int argc, char **argv)
 				PERR("invalid card data found");
 				throw EXCEPT_GENERIC;
 			}
+		}
+
+		if (state.settings.set_terminal_title)
+		{
+			std::stringstream title;
+			title << "pomocom - " << state.file_name;
+			set_terminal_title(title.view());
 		}
 
 		// Use the specified interface
