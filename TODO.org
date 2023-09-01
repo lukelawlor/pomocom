@@ -9,14 +9,17 @@
 - [X] Split up contents in pomocom.cc
 - [X] Show pomo file name in output
 - [X] Set terminal title
+
 * Optimization
 - [X] Change ncurses =getch()= behavior during pausing
+
 * Code Polishing
 - [X] Change clock type for ncurses timing
 - [X] Move interface code to files separate from =pomocom.cc=
 - [X] Write better header comments for files
 - [ ] Handle pointers/types better in =settings.cc:setting_set()=
 - [ ] Use =std::getline= to read input in =settings.cc:settings_read()=
+
 * Settings
 - [X] Create config file system
 - [X] Setting settings with command line args
@@ -24,6 +27,7 @@
 - [ ] Config file syntax changes
   - [ ] Comments
   - [ ] Using equals sign
+
 * Interfaces
 - [ ] Conditional compilation of certain interfaces
 - [-] ncurses
@@ -40,13 +44,15 @@
     - [ ] Handle systems with no colors
 - [-] wxWidgets
   - [X] Handle error when timer can't be started
-  - [ ] Help, about, and exit
+  - [ ] Prettify about
   - [ ] Prettify UI
+  - [ ] Show paused next to time left when pausing
   - [ ] Implement skipping sections
   - [ ] Implement pause_before_section_start
   - [ ] Implement keyboard controls
   - [ ] Implement updating window title based on time left
   - [ ] Switching pomo files
+
 * Documentation
 - [X] Readme
   - [X] Screenshot
@@ -55,9 +61,11 @@
 - [ ] Man page
 - [ ] Help text
 - [ ] Version number output
+
 * Bugs
 - [X] ncurses buffers keyboard input randomly
 - [X] strings settings don't have their own memory
+
 * Low-priority Additions
 - [ ] Search for files in multiple directories in order
 - [ ] Gentoo ebuild for pomocom

@@ -10,10 +10,18 @@ This interface is displayed with ANSI terminal escape codes. It is the most ligh
 - pausing
 - skipping sections
   
-** Ncurses
-This interface is displayed with the POSIX library ncurses. It is fully featured.
+** ncurses
+This interface is displayed with the POSIX library ncurses. It is fully featured!
 
-* Installation
+** wxWidgets
+This interface is displayed with the cross-platform GUI library wxWidgets. It's in early development and doesn't support all pomocom settings yet.
+
+* Building & Installation
+*pomocom* has the following dependencies:
+- C++20
+- libncursesw v6.3+ (optional)
+- wxWidgets v3.2+ (optional)
+
 *pomocom* can be compiled using the Makefile by running =make= in the project's root directory. To customize the compilation process, you may edit =config.mk=.
 
 Installing *pomocom* will copy the =config= directory in the project's root directory to =~/.config/pomocom= on POSIX systems. To install, run =make install=.
@@ -25,7 +33,7 @@ Uninstalling *pomocom* will remove the config directory at =~/.config/pomocom=. 
 
 ** pomocom.conf
 =pomocom.conf= is written in the following format:
-#+begin_src
+#+begin_src txt
   setting_name_1 setting_value_1
   setting_name_2 setting_value_2
   setting_name_3 setting_value_3
@@ -39,7 +47,7 @@ String settings can hold strings with spaces in them, but these spaces must come
 Number settings can be split into multiple subtypes with different byte sizes: bool (1 byte), char (1 byte), int (1 byte), short (2 bytes), and long (8 bytes). These settings can also be set to string values that pomocom converts into numbers using an internal table of *keywords* (ex. you can set the setting =interface= to =ncurses= because =ncurses= is defined as a keyword that translates to the number 1). See the end of this section for a table of all keywords.
 
 Here is an example =pomocom.conf= file:
-#+begin_src
+#+begin_src txt
   interface ncurses
   update_interval 1
   pause_before_section_start true
@@ -92,6 +100,7 @@ Below is a table of all keywords. You can also see the initializers for keywords
 | false   | booleans       | 0                    | 0             |
 | ansi    | interface      | INTERFACE_ANSI       | 0             |
 | ncurses | interface      | INTERFACE_NCURSES    | 1             |
+| wx      | interface      | INTERFACE_WX         | 2             |
 | default | ncurses colors | -1                   | -1            |
 | black   | ncurses colors | COLOR_BLACK          | ?             |
 | red     | ncurses colors | COLOR_RED            | ?             |
@@ -104,7 +113,7 @@ Below is a table of all keywords. You can also see the initializers for keywords
 
 ** Pomo Files
 Pomo files are written in the following format:
-#+begin_src
+#+begin_src txt
   (name of work section)
   (optional +)(command to run when the section is over)
   (section duration in minutes)m(section duration in seconds)s
@@ -122,7 +131,7 @@ Pomo files are written in the following format:
 If the section command is prefixed with =+=, the command will be prefixed with the path contained in the setting =paths.bin= (set by default to =~/.config/pomocom/=). This is used so that you can easily execute files in a directory meant for pomocom scripts without needing to add this directory to your =$PATH=.
 
 Here is an example pomo file:
-#+begin_src
+#+begin_src txt
   work time
   +msg.sh snare "work time"
   25m0s

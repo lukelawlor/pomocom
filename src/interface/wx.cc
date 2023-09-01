@@ -41,6 +41,8 @@ namespace pomocom
 		ID_BTN_QUIT,
 		ID_TXT_TIME,
 		ID_TXT_SECTION,
+		ID_MENU_ABOUT,
+		ID_MENU_EXIT,
 	};
 	
 	enum TimerState{
@@ -98,7 +100,12 @@ namespace pomocom
 		// Runs every m_timer_interval milliseconds when the timer is running
 		// Calls update_txt_time if time isn't up yet
 		void on_timer(wxTimerEvent &e);
-		
+
+		// Runs when the wxTimer fails to start
+		void on_timer_error();
+
+		void on_about(wxCommandEvent &e);
+		void on_exit(wxCommandEvent &e);
 	public:
 		MainFrame();
 	};
@@ -134,12 +141,7 @@ namespace pomocom
 			
 			// Start the wxTimer
 			if (m_timer.Start(m_timer_interval) == false)
-			{
-				// Timer failed to start
-				wxLogMessage("error: failed to start wxTimer");
-				Close(true);
-				return;
-			}
+				on_timer_error();
 			
 			// Update the UI
 			update_txt_time(m_timer_data.start);
@@ -173,12 +175,7 @@ namespace pomocom
 			
 			// Restart the wxTimer
 			if (m_timer.Start(m_timer_interval) == false)
-			{
-				// Timer failed to start
-				wxLogMessage("error: failed to start wxTimer");
-				Close(true);
-				return;
-			}
+				on_timer_error();
 			
 			// Update the UI
 			m_btn_pause->SetLabel(BTN_PAUSE_LABEL);
@@ -222,6 +219,23 @@ namespace pomocom
 			update_txt_time(time_current);
 	}
 	
+	// Runs when the wxTimer fails to start
+	void MainFrame::on_timer_error()
+	{
+		wxLogMessage("error: failed to start wxTimer");
+		Close(true);
+	}
+	
+	void MainFrame::on_about(wxCommandEvent &e)
+	{
+		wxMessageBox("placeholder about", "About pomocom", wxOK | wxICON_INFORMATION);
+	}
+	
+	void MainFrame::on_exit(wxCommandEvent &e)
+	{
+		Close();
+	}
+	
 	MainFrame::MainFrame()
 		: wxFrame(nullptr, wxID_ANY, "pomocom")
 	{
@@ -243,6 +257,18 @@ namespace pomocom
 			title << "pomocom - " << state.file_name;
 			this->SetTitle(title.str());
 		}
+
+		// Menus
+		auto menu_file = new wxMenu;
+		menu_file->Append(ID_MENU_EXIT, "&Exit", "exit pomocom");
+
+		auto menu_help = new wxMenu;
+		menu_help->Append(ID_MENU_ABOUT, "&About", "about pomocom");
+
+		auto menu_bar = new wxMenuBar;
+		menu_bar->Append(menu_file, "&File");
+		menu_bar->Append(menu_help, "&Help");
+		SetMenuBar(menu_bar);
 		
 		// Widget creation and layout
 		auto panel = new wxPanel(this);
@@ -258,6 +284,8 @@ namespace pomocom
 		// Event binding
 		m_btn_pause->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainFrame::on_btn_pause, this);
 		m_timer.Bind(wxEVT_TIMER, &MainFrame::on_timer, this);
+		Bind(wxEVT_MENU, &MainFrame::on_about, this, ID_MENU_ABOUT);
+		Bind(wxEVT_MENU, &MainFrame::on_exit, this, ID_MENU_EXIT);
 	}
 	
 	// wxWidgets app
