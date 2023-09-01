@@ -2,9 +2,9 @@
 
 include config.mk
 
-CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -std=c++20
+CXXFLAGS = -O2 -g -Wall -Wextra -Wpedantic -std=c++20 `wx-config --cppflags`
 DEPFLAGS = -MMD -MP
-LDFLAGS = -Wl,--copy-dt-needed-entries -lncursesw
+LDFLAGS = -Wl,--copy-dt-needed-entries -lncursesw `wx-config --libs`
 
 BINPATH = ./$(BINNAME)
 

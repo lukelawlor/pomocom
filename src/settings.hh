@@ -30,6 +30,9 @@ namespace pomocom
 
 		// Interface using the ncurses library
 		INTERFACE_NCURSES,
+
+		// Interface using wxWidgets
+		INTERFACE_WX,
 	};
 
 	// Setting type IDs

@@ -84,6 +84,7 @@ namespace pomocom
 		// Interfaces
 		{"ncurses", INTERFACE_NCURSES},
 		{"ansi", INTERFACE_ANSI},
+		{"wx", INTERFACE_WX},
 
 		// Ncurses colors
 		{"default", -1},

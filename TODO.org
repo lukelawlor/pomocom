@@ -38,6 +38,15 @@
     - [X] Use
     - [X] Configuration
     - [ ] Handle systems with no colors
+- [-] wxWidgets
+  - [X] Handle error when timer can't be started
+  - [ ] Help, about, and exit
+  - [ ] Prettify UI
+  - [ ] Implement skipping sections
+  - [ ] Implement pause_before_section_start
+  - [ ] Implement keyboard controls
+  - [ ] Implement updating window title based on time left
+  - [ ] Switching pomo files
 * Documentation
 - [X] Readme
   - [X] Screenshot

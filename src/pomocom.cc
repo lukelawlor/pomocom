@@ -113,7 +113,9 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (state.settings.set_terminal_title)
+		if ((state.settings.interface == INTERFACE_ANSI ||
+		     state.settings.interface == INTERFACE_NCURSES) &&
+		    state.settings.set_terminal_title)
 		{
 			std::stringstream title;
 			title << "pomocom - " << state.file_name;
@@ -128,6 +130,9 @@ int main(int argc, char **argv)
 			break;
 		case INTERFACE_NCURSES:
 			interface_ncurses_loop();
+			break;
+		case INTERFACE_WX:
+			interface_wx_loop();
 			break;
 		default:
 			PERR("unknown interface");
