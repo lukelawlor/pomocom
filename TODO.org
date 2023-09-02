@@ -44,9 +44,11 @@
     - [ ] Handle systems with no colors
 - [-] wxWidgets
   - [X] Handle error when timer can't be started
-  - [ ] Prettify about
+  - [X] Prettify about
+  - [ ] Add proper version number to about
   - [ ] Prettify UI
   - [ ] Show paused next to time left when pausing
+  - [ ] Show the next up section
   - [ ] Implement skipping sections
   - [ ] Implement pause_before_section_start
   - [ ] Implement keyboard controls

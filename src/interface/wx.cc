@@ -10,6 +10,7 @@
 #include <string>
 
 #include <wx/wx.h>
+#include <wx/hyperlink.h>
 
 #include "../pomocom.hh" // For SectionInfo
 #include "../state.hh"
@@ -23,18 +24,40 @@ namespace pomocom
 	using Clock = chrono::high_resolution_clock;
 
 	// String literals
-	constexpr const char *BTN_START_LABEL = "start";
-	constexpr const char *BTN_PAUSE_LABEL = "pause";
-	constexpr const char *BTN_RESUME_LABEL = "resume";
-	constexpr const char *BTN_SKIP_LABEL = "skip";
-	constexpr const char *STATUS_TIME_STARTED = "time started";
-	constexpr const char *STATUS_TIME_PAUSED = "time paused";
-	constexpr const char *STATUS_TIME_RESUMED = "time resumed";
-	constexpr const char *STATUS_TIME_UP = "time up!";
-	constexpr const char *STATUS_INITIAL = "welcome to pomocom!";
-	constexpr const char *TXT_TIME_INITIAL_LABEL = "time left goes here";
-	constexpr const char *TXT_TIME_UP_LABEL = STATUS_TIME_UP;
-	constexpr const char *TXT_SECTION_INITIAL_LABEL = "section name goes here";
+
+	// Window titles
+	constexpr auto S_TITLE_DEFAULT = "pomocom";
+	constexpr auto S_TITLE_ABOUT = "About pomocom";
+	
+	// Hyperlinks
+	constexpr auto S_LINK_CODEBERG_LABEL = "Codeberg Repository";
+	constexpr auto S_LINK_CODEBERG_URL = "https://codeberg.org/lukelawlor/pomocom";
+	constexpr auto S_LINK_GITHUB_LABEL = "GitHub Repository";
+	constexpr auto S_LINK_GITHUB_URL = "https://github.com/lukelawlor/pomocom";
+
+	// Labels of buttons
+	constexpr auto S_BTN_START = "start";
+	constexpr auto S_BTN_PAUSE = "pause";
+	constexpr auto S_BTN_RESUME = "resume";
+	constexpr auto S_BTN_SKIP = "skip";
+
+	// About window text
+	constexpr auto S_ABOUT_NAME = "pomocom";
+	constexpr auto S_ABOUT_VERSION = "(insert version number here)";
+	constexpr auto S_ABOUT_DESC = "a lightweight and configurable pomodoro timer";
+	constexpr auto S_ABOUT_COPYRIGHT = "Copyright (c) 2023 by Luke Lawlor <lklawlor1@gmail.com>";
+
+	// Status bar text
+	constexpr auto S_STATUS_TIME_STARTED = "time started";
+	constexpr auto S_STATUS_TIME_PAUSED = "time paused";
+	constexpr auto S_STATUS_TIME_RESUMED = "time resumed";
+	constexpr auto S_STATUS_TIME_UP = "time up!";
+	constexpr auto S_STATUS_INIT = "welcome to pomocom!";
+
+	// Text widget text
+	constexpr auto S_TXT_TIME_INIT = "time left goes here";
+	constexpr auto S_TXT_TIME_UP = S_STATUS_TIME_UP;
+	constexpr auto S_TXT_SECTION_INIT = "section name goes here";
 	
 	enum WindowId{
 		ID_BTN_PAUSE = 2,
@@ -110,7 +133,11 @@ namespace pomocom
 		MainFrame();
 	};
 
-			
+	// About window
+	struct AboutWin : public wxDialog{
+		AboutWin();
+	};
+
 	// Updates m_txt_time to show the time left in the timing section
 	void MainFrame::update_txt_time(chrono::time_point<Clock> &time_current)
 	{
@@ -146,8 +173,8 @@ namespace pomocom
 			// Update the UI
 			update_txt_time(m_timer_data.start);
 			m_txt_section->SetLabel(m_si->name);
-			m_btn_pause->SetLabel(BTN_PAUSE_LABEL);
-			SetStatusText(STATUS_TIME_STARTED);
+			m_btn_pause->SetLabel(S_BTN_START);
+			SetStatusText(S_STATUS_TIME_STARTED);
 			
 			// Update the timer state
 			m_timer_data.state = TSTATE_TIMER_RUNNING;
@@ -161,8 +188,8 @@ namespace pomocom
 			m_timer.Stop();
 			
 			// Update the UI
-			m_btn_pause->SetLabel(BTN_RESUME_LABEL);
-			SetStatusText(STATUS_TIME_PAUSED);
+			m_btn_pause->SetLabel(S_BTN_RESUME);
+			SetStatusText(S_STATUS_TIME_PAUSED);
 			
 			// Update the timer state
 			m_timer_data.state = TSTATE_TIMER_NOT_RUNNING;
@@ -178,8 +205,8 @@ namespace pomocom
 				on_timer_error();
 			
 			// Update the UI
-			m_btn_pause->SetLabel(BTN_PAUSE_LABEL);
-			SetStatusText(STATUS_TIME_RESUMED);
+			m_btn_pause->SetLabel(S_BTN_PAUSE);
+			SetStatusText(S_STATUS_TIME_RESUMED);
 			
 			// Update the timer state
 			m_timer_data.state = TSTATE_TIMER_RUNNING;
@@ -207,10 +234,10 @@ namespace pomocom
 			m_timer.Stop();
 			
 			// Update the UI
-			m_txt_time->SetLabel(TXT_TIME_UP_LABEL);
+			m_txt_time->SetLabel(S_TXT_TIME_UP);
 			m_txt_section->SetLabel(m_si->name);
-			m_btn_pause->SetLabel(BTN_START_LABEL);
-			SetStatusText(STATUS_TIME_UP);
+			m_btn_pause->SetLabel(S_BTN_START);
+			SetStatusText(S_STATUS_TIME_UP);
 			
 			// Update the timer state
 			m_timer_data.state = TSTATE_START;
@@ -228,7 +255,8 @@ namespace pomocom
 	
 	void MainFrame::on_about(wxCommandEvent &e)
 	{
-		wxMessageBox("placeholder about", "About pomocom", wxOK | wxICON_INFORMATION);
+		AboutWin about;
+		about.ShowModal();
 	}
 	
 	void MainFrame::on_exit(wxCommandEvent &e)
@@ -237,7 +265,7 @@ namespace pomocom
 	}
 	
 	MainFrame::MainFrame()
-		: wxFrame(nullptr, wxID_ANY, "pomocom")
+		: wxFrame(nullptr, wxID_ANY, S_TITLE_DEFAULT)
 	{
 		// Initialize the timer interval based on settings
 		m_timer_interval = 1000 * state.settings.update_interval;
@@ -248,7 +276,6 @@ namespace pomocom
 		// Frame settings
 		this->SetClientSize(540, 280);
 		this->Centre();
-		this->Show();
 		
 		// Set frame name
 		if (state.settings.set_terminal_title)
@@ -272,14 +299,14 @@ namespace pomocom
 		
 		// Widget creation and layout
 		auto panel = new wxPanel(this);
-		auto btn_skip = new wxButton(panel, ID_BTN_QUIT, BTN_SKIP_LABEL, wxPoint(0, 25), wxSize(80, 24));
-		m_btn_pause = new wxButton(panel, ID_BTN_PAUSE, BTN_START_LABEL, wxPoint(0, 0), wxSize(80, 24));
-		m_txt_time = new wxStaticText(panel, ID_TXT_TIME, TXT_TIME_INITIAL_LABEL, wxPoint(90, 0), wxSize(200, 24));
-		m_txt_section = new wxStaticText(panel, ID_TXT_SECTION, TXT_SECTION_INITIAL_LABEL, wxPoint(90, 25), wxSize(200, 24));
+		auto btn_skip = new wxButton(panel, ID_BTN_QUIT, S_BTN_SKIP, wxPoint(0, 25), wxSize(80, 24));
+		m_btn_pause = new wxButton(panel, ID_BTN_PAUSE, S_BTN_START, wxPoint(0, 0), wxSize(80, 24));
+		m_txt_time = new wxStaticText(panel, ID_TXT_TIME, S_TXT_TIME_INIT, wxPoint(90, 0), wxSize(200, 24));
+		m_txt_section = new wxStaticText(panel, ID_TXT_SECTION, S_TXT_SECTION_INIT, wxPoint(90, 25), wxSize(200, 24));
 		
 		// Status bar
 		CreateStatusBar();
-		SetStatusText(STATUS_INITIAL);
+		SetStatusText(S_STATUS_INIT);
 		
 		// Event binding
 		m_btn_pause->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainFrame::on_btn_pause, this);
@@ -287,12 +314,51 @@ namespace pomocom
 		Bind(wxEVT_MENU, &MainFrame::on_about, this, ID_MENU_ABOUT);
 		Bind(wxEVT_MENU, &MainFrame::on_exit, this, ID_MENU_EXIT);
 	}
+
+	AboutWin::AboutWin()
+		: wxDialog(nullptr, wxID_ANY, S_TITLE_ABOUT)
+	{
+		// Window settings
+		this->Centre();
+
+		// Text
+		wxFont font;
+		auto txt_name = new wxStaticText(this, wxID_ANY, S_ABOUT_NAME);
+		font = txt_name->GetFont();
+		font.SetWeight(wxFONTWEIGHT_BOLD);
+		txt_name->SetFont(font);
+		auto txt_version = new wxStaticText(this, wxID_ANY, S_ABOUT_VERSION);
+		auto txt_desc = new wxStaticText(this, wxID_ANY, S_ABOUT_DESC);
+		auto txt_copyright = new wxStaticText(this, wxID_ANY, S_ABOUT_COPYRIGHT);
+		font = txt_copyright->GetFont();
+		font.SetPointSize(10);
+		txt_copyright->SetFont(font);
+
+		// Links
+		auto link_codeberg = new wxHyperlinkCtrl(this, wxID_ANY, S_LINK_CODEBERG_LABEL, S_LINK_CODEBERG_URL);
+		auto link_github = new wxHyperlinkCtrl(this, wxID_ANY, S_LINK_GITHUB_LABEL, S_LINK_GITHUB_URL);
+
+		wxBoxSizer *sizer_link = new wxBoxSizer(wxHORIZONTAL);
+		sizer_link->Add(link_codeberg, 0, wxALIGN_CENTRE);
+		sizer_link->AddSpacer(10);
+		sizer_link->Add(link_github, 0, wxALIGN_CENTRE);
+		
+		wxBoxSizer *sizer_vert = new wxBoxSizer(wxVERTICAL);
+		sizer_vert->Add(txt_name, 0, wxALIGN_CENTRE | wxALL, 20);
+		sizer_vert->Add(txt_version, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
+		sizer_vert->Add(txt_desc, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
+		sizer_vert->Add(sizer_link, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
+		sizer_vert->Add(txt_copyright, 0, wxALIGN_CENTRE | wxALL, 20);
+		sizer_vert->Add(CreateButtonSizer(wxCLOSE), 0, wxALIGN_CENTRE | wxALL, 20);
+		SetSizerAndFit(sizer_vert);
+	}
 	
 	// wxWidgets app
 	struct App : public wxApp{
 		bool OnInit() override
 		{
-			new MainFrame;
+			auto main_frame = new MainFrame;
+			main_frame->Show();
 			return true;
 		}
 	};
