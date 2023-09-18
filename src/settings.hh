@@ -93,12 +93,14 @@ namespace pomocom
 			// Path to directory where config files are stored
 			SettingString config;
 
-			// Path to directory that pomo files are stored in
+			// Path to directory where pomo files are stored in
 			SettingString section;
 
-			// Path to directory that script files are stored in
+			// Path to directory where script files are stored in
 			SettingString bin;
 
+			// Path to directory where resource files are stored in (e.g. images)
+			SettingString res;
 		} path;
 
 		struct Ncurses{

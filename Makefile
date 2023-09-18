@@ -38,7 +38,7 @@ install: all
 	cp $(BINPATH) $(INSTALL_DIR)/$(BINNAME)
 	strip $(INSTALL_DIR)/$(BINNAME)
 	mkdir -p ~/.config/pomocom
-	cp ./config/* ~/.config/pomocom/
+	cp -r ./config/* ~/.config/pomocom/
 
 uninstall:
 	rm $(INSTALL_DIR)/$(BINNAME)

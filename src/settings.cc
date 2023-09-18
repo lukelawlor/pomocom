@@ -161,6 +161,8 @@ namespace pomocom
 			path.config = try_strdup(buf.c_str());
 			path.section = try_strdup(path.config);
 			path.bin = try_strdup(path.config);
+			buf += "res/";
+			path.res = try_strdup(buf.c_str());
 		}
 		catch (...)
 		{

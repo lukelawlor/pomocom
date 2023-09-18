@@ -11,6 +11,7 @@
 
 #include <wx/wx.h>
 #include <wx/hyperlink.h>
+#include <wx/artprov.h>
 
 #include "../pomocom.hh" // For SectionInfo
 #include "../state.hh"
@@ -24,6 +25,10 @@ namespace pomocom
 	using Clock = chrono::high_resolution_clock;
 
 	// String literals
+	
+	// Image filenames
+	constexpr auto S_FILE_ICON_SMALL = "icon_16x16.png";
+	constexpr auto S_FILE_ICON_LARGE = "icon_48x64.png";
 
 	// Window titles
 	constexpr auto S_TITLE_DEFAULT = "pomocom";
@@ -43,7 +48,7 @@ namespace pomocom
 
 	// About window text
 	constexpr auto S_ABOUT_NAME = "pomocom";
-	constexpr auto S_ABOUT_VERSION = "(insert version number here)";
+	constexpr auto S_ABOUT_VERSION = "v" POMOCOM_VERSION;
 	constexpr auto S_ABOUT_DESC = "a lightweight and configurable pomodoro timer";
 	constexpr auto S_ABOUT_COPYRIGHT = "Copyright (c) 2023 by Luke Lawlor <lklawlor1@gmail.com>";
 
@@ -93,6 +98,11 @@ namespace pomocom
 		chrono::time_point<Clock> pause_start;
 	};
 
+	// About window
+	struct AboutWin : public wxDialog{
+		AboutWin();
+	};
+
 	// Frame created when the app starts
 	struct MainFrame : public wxFrame{
 	private:
@@ -114,6 +124,9 @@ namespace pomocom
 		// Displays the name of the timing section
 		wxStaticText *m_txt_section;
 
+		// About window
+		AboutWin m_about_win;
+
 		// Updates m_txt_time to show the time left in the timing section
 		void update_txt_time(chrono::time_point<Clock> &time_current);
 
@@ -131,11 +144,6 @@ namespace pomocom
 		void on_exit(wxCommandEvent &e);
 	public:
 		MainFrame();
-	};
-
-	// About window
-	struct AboutWin : public wxDialog{
-		AboutWin();
 	};
 
 	// Updates m_txt_time to show the time left in the timing section
@@ -255,8 +263,7 @@ namespace pomocom
 	
 	void MainFrame::on_about(wxCommandEvent &e)
 	{
-		AboutWin about;
-		about.ShowModal();
+		m_about_win.ShowModal();
 	}
 	
 	void MainFrame::on_exit(wxCommandEvent &e)
@@ -284,6 +291,12 @@ namespace pomocom
 			title << "pomocom - " << state.file_name;
 			this->SetTitle(title.str());
 		}
+
+		// Set frame icon
+		std::stringstream icon_path;
+		icon_path << state.settings.path.res << S_FILE_ICON_SMALL;
+		wxIcon icon(icon_path.str(), wxBITMAP_TYPE_ANY, 16, 16);
+		SetIcon(icon);
 
 		// Menus
 		auto menu_file = new wxMenu;
@@ -321,6 +334,19 @@ namespace pomocom
 		// Window settings
 		this->Centre();
 
+		// Pomocom icon
+		std::stringstream icon_path;
+		icon_path << state.settings.path.res << S_FILE_ICON_LARGE;
+		wxBitmap bmp(icon_path.str(), wxBITMAP_TYPE_ANY);
+
+		if (!bmp.IsOk())
+		{
+			// Use a missing art image if the bitmap fails
+			bmp = wxArtProvider::GetBitmap(wxART_MISSING_IMAGE);
+		}
+
+		auto bmp_pomocom_icon = new wxStaticBitmap(this, wxID_ANY, bmp);
+
 		// Text
 		wxFont font;
 		auto txt_name = new wxStaticText(this, wxID_ANY, S_ABOUT_NAME);
@@ -344,7 +370,8 @@ namespace pomocom
 		sizer_link->Add(link_github, 0, wxALIGN_CENTRE);
 		
 		wxBoxSizer *sizer_vert = new wxBoxSizer(wxVERTICAL);
-		sizer_vert->Add(txt_name, 0, wxALIGN_CENTRE | wxALL, 20);
+		sizer_vert->Add(bmp_pomocom_icon, 0, wxALIGN_CENTRE | wxALL, 20);
+		sizer_vert->Add(txt_name, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
 		sizer_vert->Add(txt_version, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
 		sizer_vert->Add(txt_desc, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
 		sizer_vert->Add(sizer_link, 0, wxALIGN_CENTRE | wxBOTTOM, 20);
@@ -357,6 +384,9 @@ namespace pomocom
 	struct App : public wxApp{
 		bool OnInit() override
 		{
+			// Allow PNG image loading
+			wxImage::AddHandler(new wxPNGHandler);
+
 			auto main_frame = new MainFrame;
 			main_frame->Show();
 			return true;

@@ -6,6 +6,7 @@
 
 namespace pomocom
 {
+	#define	POMOCOM_VERSION	"0.0.0"
 	constexpr int SECTION_INFO_NAME_LEN = 100;
 	constexpr int SECTION_INFO_CMD_LEN = 100;
 
