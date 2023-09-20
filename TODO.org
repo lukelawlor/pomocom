@@ -46,7 +46,7 @@
   - [X] Handle error when timer can't be started
   - [X] Prettify about
   - [X] Add proper version number to about
-  - [ ] Prettify UI
+  - [ ] Prettify timer UI
   - [ ] Show paused next to time left when pausing
   - [ ] Show the next up section
   - [ ] Implement skipping sections

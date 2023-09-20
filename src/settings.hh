@@ -127,6 +127,11 @@ namespace pomocom
 			} color;
 		} ncurses;
 
+		struct Wx{
+			SettingBool show_menu_bar;
+			SettingBool show_resize_symbol;
+		} wx;
+
 		// Sets default settings values
 		ProgramSettings();
 	};

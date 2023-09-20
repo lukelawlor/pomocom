@@ -41,10 +41,10 @@ namespace pomocom
 	constexpr auto S_LINK_GITHUB_URL = "https://github.com/lukelawlor/pomocom";
 
 	// Labels of buttons
-	constexpr auto S_BTN_START = "start";
-	constexpr auto S_BTN_PAUSE = "pause";
-	constexpr auto S_BTN_RESUME = "resume";
-	constexpr auto S_BTN_SKIP = "skip";
+	constexpr auto S_BTN_START = "Start";
+	constexpr auto S_BTN_PAUSE = "Pause";
+	constexpr auto S_BTN_RESUME = "Resume";
+	constexpr auto S_BTN_SKIP = "Skip";
 
 	// About window text
 	constexpr auto S_ABOUT_NAME = "pomocom";
@@ -53,11 +53,11 @@ namespace pomocom
 	constexpr auto S_ABOUT_COPYRIGHT = "Copyright (c) 2023 by Luke Lawlor <lklawlor1@gmail.com>";
 
 	// Status bar text
-	constexpr auto S_STATUS_TIME_STARTED = "time started";
-	constexpr auto S_STATUS_TIME_PAUSED = "time paused";
-	constexpr auto S_STATUS_TIME_RESUMED = "time resumed";
-	constexpr auto S_STATUS_TIME_UP = "time up!";
-	constexpr auto S_STATUS_INIT = "welcome to pomocom!";
+	constexpr auto S_STATUS_TIME_STARTED = "Time started";
+	constexpr auto S_STATUS_TIME_PAUSED = "Time paused";
+	constexpr auto S_STATUS_TIME_RESUMED = "Time resumed";
+	constexpr auto S_STATUS_TIME_UP = "Time up!";
+	constexpr auto S_STATUS_INIT = "Welcome to pomocom!";
 
 	// Text widget text
 	constexpr auto S_TXT_TIME_INIT = "time left goes here";
@@ -135,6 +135,7 @@ namespace pomocom
 
 		// Runs every m_timer_interval milliseconds when the timer is running
 		// Calls update_txt_time if time isn't up yet
+
 		void on_timer(wxTimerEvent &e);
 
 		// Runs when the wxTimer fails to start
@@ -181,7 +182,7 @@ namespace pomocom
 			// Update the UI
 			update_txt_time(m_timer_data.start);
 			m_txt_section->SetLabel(m_si->name);
-			m_btn_pause->SetLabel(S_BTN_START);
+			m_btn_pause->SetLabel(S_BTN_PAUSE);
 			SetStatusText(S_STATUS_TIME_STARTED);
 			
 			// Update the timer state
@@ -263,6 +264,7 @@ namespace pomocom
 	
 	void MainFrame::on_about(wxCommandEvent &e)
 	{
+		m_about_win.Centre();
 		m_about_win.ShowModal();
 	}
 	
@@ -283,15 +285,14 @@ namespace pomocom
 		// Frame settings
 		this->SetClientSize(540, 280);
 		this->Centre();
+		if (!state.settings.wx.show_resize_symbol)
+			this->SetWindowStyle(wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER));
 		
 		// Set frame name
-		if (state.settings.set_terminal_title)
-		{
-			std::stringstream title;
-			title << "pomocom - " << state.file_name;
-			this->SetTitle(title.str());
-		}
-
+		std::stringstream title;
+		title << "pomocom - " << state.file_name;
+		this->SetTitle(title.str());
+		
 		// Set frame icon
 		std::stringstream icon_path;
 		icon_path << state.settings.path.res << S_FILE_ICON_SMALL;
@@ -299,20 +300,23 @@ namespace pomocom
 		SetIcon(icon);
 
 		// Menus
-		auto menu_file = new wxMenu;
-		menu_file->Append(ID_MENU_EXIT, "&Exit", "exit pomocom");
-
-		auto menu_help = new wxMenu;
-		menu_help->Append(ID_MENU_ABOUT, "&About", "about pomocom");
-
-		auto menu_bar = new wxMenuBar;
-		menu_bar->Append(menu_file, "&File");
-		menu_bar->Append(menu_help, "&Help");
-		SetMenuBar(menu_bar);
+		if (state.settings.wx.show_menu_bar)
+		{
+			auto menu_file = new wxMenu;
+			menu_file->Append(ID_MENU_EXIT, "&Exit", "Exit pomocom");
+			
+			auto menu_help = new wxMenu;
+			menu_help->Append(ID_MENU_ABOUT, "&About", "About pomocom");
+			
+			auto menu_bar = new wxMenuBar;
+			menu_bar->Append(menu_file, "&File");
+			menu_bar->Append(menu_help, "&Help");
+			SetMenuBar(menu_bar);
+		}
 		
 		// Widget creation and layout
 		auto panel = new wxPanel(this);
-		auto btn_skip = new wxButton(panel, ID_BTN_QUIT, S_BTN_SKIP, wxPoint(0, 25), wxSize(80, 24));
+		auto btn_skip = new wxButton(panel, ID_BTN_QUIT, S_BTN_SKIP, wxPoint(0, 24), wxSize(80, 24));
 		m_btn_pause = new wxButton(panel, ID_BTN_PAUSE, S_BTN_START, wxPoint(0, 0), wxSize(80, 24));
 		m_txt_time = new wxStaticText(panel, ID_TXT_TIME, S_TXT_TIME_INIT, wxPoint(90, 0), wxSize(200, 24));
 		m_txt_section = new wxStaticText(panel, ID_TXT_SECTION, S_TXT_SECTION_INIT, wxPoint(90, 25), wxSize(200, 24));

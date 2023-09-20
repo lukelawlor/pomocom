@@ -49,7 +49,7 @@ namespace pomocom
 		throw EXCEPT_GENERIC;
 	}
 
-	// Map of settings
+	// Map of settings that can be set by the user
 	const std::unordered_map<std::string_view, SettingDef> settings_map = {
 		ADD_SETTING(interface)
 		ADD_SETTING(update_interval)
@@ -62,6 +62,7 @@ namespace pomocom
 		ADD_SETTING(path.config)
 		ADD_SETTING(path.section)
 		ADD_SETTING(path.bin)
+		ADD_SETTING(path.res)
 		ADD_SETTING(ncurses.color.pomocom.fg)
 		ADD_SETTING(ncurses.color.pomocom.bg)
 		ADD_SETTING(ncurses.color.section_work.fg)
@@ -72,6 +73,8 @@ namespace pomocom
 		ADD_SETTING(ncurses.color.time.bg)
 		ADD_SETTING(set_terminal_title)
 		ADD_SETTING(set_terminal_title_countdown)
+		ADD_SETTING(wx.show_menu_bar)
+		ADD_SETTING(wx.show_resize_symbol)
 	};
 
 	// Map of keywords that translate into SettingInt values
@@ -134,6 +137,10 @@ namespace pomocom
 					-1,
 				},
 			},
+		}),
+		wx({
+		        .show_menu_bar = true,
+			.show_resize_symbol = true,
 		})
 		{ settings_set_default_paths(path); }
 
@@ -362,6 +369,7 @@ namespace pomocom
 		std::free((void *) s.path.config);
 		std::free((void *) s.path.section);
 		std::free((void *) s.path.bin);
+		std::free((void *) s.path.res);
 	}
 
 	// Calls strdup() and throws an exception on error
