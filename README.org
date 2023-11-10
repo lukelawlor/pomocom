@@ -24,9 +24,11 @@ This interface is displayed with the cross-platform GUI library wxWidgets. It's 
 
 *pomocom* can be compiled using the Makefile by running =make= in the project's root directory. To customize the compilation process, you may edit =config.mk=.
 
-Installing *pomocom* will copy the =config= directory in the project's root directory to =~/.config/pomocom= on POSIX systems. To install, run =make install=.
+To install, run =make install=. This will copy the =config= directory in the project's root directory to =~/.config/pomocom= on POSIX systems.
 
-Uninstalling *pomocom* will remove the config directory at =~/.config/pomocom=. To uninstall, run =make uninstall=.
+To install just the =pomocom= binary and leave config directories untouched, run =make installbin=.
+
+To uninstall, run =make uninstall=. This will remove the config directory at =~/.config/pomocom=.
 
 * Configuration
 *pomocom* is configured with files found in =~/.config/pomocom=. In there, =pomocom.conf= contains program settings values, and *pomo files* (ending in .pomo) contain timing section information.
@@ -157,7 +159,7 @@ When *pomocom* is run with no specified pomo file, the pomo file =standard.pomo=
 *** Short Arguments
 =-q (minutes of work section ) (minutes of break section) (minutes of long break section)=
 
-Stands for quick pomo file setup. This will read the default pomo file and overwrite the lengths of each section.
+This stands for quick pomo file setup. It will make *pomocom* read the default pomo file and overwrite the lengths of each section with those specified.
 
 *** Long Arguments (Settings)
 To change settings, pass an argument starting with =--= and ending with the setting name. The next argument should be the value of the setting.
@@ -167,12 +169,12 @@ Settings specified in this way will override the settings in =pomocom.conf=.
 *** Examples
 This will open the pomo file =work.pomo= in the directory contained in the setting =paths.section= and set the setting =interface= to =wx=, regardless of what =interface= is set as in =pomocom.conf=. 
 #+begin_src shell
-	pomocom work --interface wx
+pomocom work --interface wx
 #+end_src
 
 This will open the pomo file =abc.pomo= in the working directory that the command is run from.
 #+begin_src shell
-	pomocom ./abc
+pomocom ./abc
 #+end_src
 
 ** Default Controls

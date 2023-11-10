@@ -27,16 +27,18 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
 
 .DELETE_ON_ERROR:
-.PHONY: clean install uninstall
+.PHONY: clean installbin install uninstall
 
 clean:
 	rm -rf $(BUILD_DIR)
 	rm $(BINPATH)
 
-install: all
+installbin:
 	mkdir -p $(INSTALL_DIR)
 	cp $(BINPATH) $(INSTALL_DIR)/$(BINNAME)
 	strip $(INSTALL_DIR)/$(BINNAME)
+
+install: all installbin
 	mkdir -p ~/.config/pomocom
 	cp -r ./config/* ~/.config/pomocom/
 
