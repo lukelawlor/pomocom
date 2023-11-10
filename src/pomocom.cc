@@ -47,43 +47,33 @@ int main(int argc, char **argv)
 		{
 			bool pomo_file_was_specified = false;
 
+			// Loop through args
 			for (int i = 1; i < argc; ++i)
 			{
 				char *arg = argv[i];
 
 				if (arg[0] != '\0' && arg[0] == '-' && arg[1] == '-')
 				{
-					// Assume the argument is a config file option
+					// The argument starts with "--"
+					// Assume the argument contains a setting name after the "--"
+					char *setting_name = arg + 2;
 
-					// The current char read from arg
-					int c;
-					
-					// The index of '='
-					int equals_index = 0;
+					// The next argument should be the setting value
 
-					// Find the index of '='
-					for (int j = 1; (c = arg[j]) != '\0'; ++j)
+					if (i + 1 == argc)
 					{
-						if (c == '=')
-						{
-							equals_index = j;
-							break;
-						}
+						// This is the last argument, so there is no next argument containing a value
+						PERR("no setting value specified for setting \"%s\"", setting_name);
+						break;
 					}
 
-					if (equals_index == 0)
-					{
-						PERR("no equals sign found in config setting argument #%d", i);
-						continue;
-					}
-
-					// Replace the equals sign with '\0' to split the string in two
-					arg[equals_index] = '\0';
-
-					// Use pointer arithmetic to indicate the offsets of two different strings (one for the setting name, and the other for the setting value)
-					try{ setting_set(state.settings, arg + 2, arg + equals_index + 1); }
+					// There is a next argument, so we can increment i without going out of bounds
+					++i;
+					char *setting_value = argv[i];
+					try{ setting_set(state.settings, setting_name, setting_value); }
 					catch (Exception &e)
 					{
+						
 						if (e != EXCEPT_IO)
 						{
 							// A memory allocation failed, so we can't handle it

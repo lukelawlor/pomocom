@@ -147,13 +147,27 @@ Here is an example pomo file:
 #+end_src
 
 * Usage
-
 ** Command Line Arguments
+*** Picking the Pomo File to Read on Startup
+Any argument that doesn't start with =-= is interpreted as the pomo file to read. The path of this file will be the said argument prefixed with the setting =paths.section= (set by default to =~/.config/pomocom/=) and suffixed with =.pomo=. If this argument starts with =./=, the pomo file will be searched for relative to the working directory.
+
 When *pomocom* is run with no specified pomo file, the pomo file =standard.pomo= in the program's config directory is read.
 
-Any argument that isn't prefixed with =--= is interpreted as the pomo file to read. The path of this file will be the entirety of said argument prefixed with the setting =paths.section= (set by default to =~/.config/pomocom/=) suffixed with =.pomo=. If the second argument starts with =./=, the pomo file will be searched for in the working directory.
+*** Settings
+To change settings, pass an argument starting with =--= and ending with the setting name. The next argument should be the value of the setting.
 
-Arguments that are prefixed with =--= are interpreted as settings in the format =--setting_name=setting_value=. See the =pomocom.conf= section of this readme for more details on settings.
+Settings specified in this way will override the settings in =pomocom.conf=.
+
+*** Examples
+This will open the pomo file =work.pomo= in the directory contained in the setting =paths.section= and set the setting =interface= to =wx=, regardless of what =interface= is set as in =pomocom.conf=. 
+#+begin_src shell
+	pomocom work --interface wx
+#+end_src
+
+This will open the pomo file =abc.pomo= in the working directory that the command is run from.
+#+begin_src shell
+	pomocom ./abc
+#+end_src
 
 ** Default Controls
 These are not available in the ANSI interface.
