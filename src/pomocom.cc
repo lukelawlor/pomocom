@@ -52,37 +52,70 @@ int main(int argc, char **argv)
 			{
 				char *arg = argv[i];
 
-				if (arg[0] != '\0' && arg[0] == '-' && arg[1] == '-')
+				if (arg[0] == '-')
 				{
-					// The argument starts with "--"
-					// Assume the argument contains a setting name after the "--"
-					char *setting_name = arg + 2;
-
-					// The next argument should be the setting value
-
-					if (i + 1 == argc)
+					if (arg[1] == '-')
 					{
-						// This is the last argument, so there is no next argument containing a value
-						PERR("no setting value specified for setting \"%s\"", setting_name);
-						break;
-					}
+						// The argument starts with "--"
+						// Assume the argument contains a setting name after the "--"
+						char *setting_name = arg + 2;
 
-					// There is a next argument, so we can increment i without going out of bounds
-					++i;
-					char *setting_value = argv[i];
-					try{ setting_set(state.settings, setting_name, setting_value); }
-					catch (Exception &e)
-					{
-						
-						if (e != EXCEPT_IO)
+						// The next argument should be the setting value
+
+						if (i + 1 == argc)
 						{
-							// A memory allocation failed, so we can't handle it
-							throw e;
+							// This is the last argument, so there is no next argument containing a value
+							PERR("no setting value specified for setting \"%s\"", setting_name);
+							break;
+						}
+
+						// There is a next argument, so we can increment i without going out of bounds
+						++i;
+						char *setting_value = argv[i];
+						try{ setting_set(state.settings, setting_name, setting_value); }
+						catch (Exception &e)
+						{
+							
+							if (e != EXCEPT_IO)
+							{
+								// A memory allocation failed, so we can't handle it
+								throw e;
+							}
+						}
+					}
+					else
+					{
+						// The argument starts with "-"
+						switch (arg[1])
+						{
+						case 'q':
+							// Quick pomo file setup
+							// usage: -q (mins of work section) (mins of break section) (mins of long break section)
+							{
+								if (i + 3 >= argc)
+								{
+									PERR("not enough arguments following \"-q\"");
+									throw EXCEPT_BAD_SETTING;
+								}
+
+								// Use the names and commands from the default pomo file
+								pomo_file_was_specified = true;
+								read_sections(DEFAULT_POMO_FILE);
+
+								// Overwrite the length of each section based on the args after -q
+								for (SectionInfo &si : state.section_info)
+									si.secs = std::atoi(argv[++i]) * 60;
+							}
+							break;
+						default:
+							PERR("unknown argument \"%s\"", arg);
+							break;
 						}
 					}
 				}
 				else
 				{
+					// The argument doesn't start with "-"
 					// Assume the argument is the name of a pomo file
 					pomo_file_was_specified = true;
 					read_sections(arg);
