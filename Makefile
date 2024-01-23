@@ -33,7 +33,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm $(BINPATH)
 
-installbin:
+installbin: all
 	mkdir -p $(INSTALL_DIR)
 	cp $(BINPATH) $(INSTALL_DIR)/$(BINNAME)
 	strip $(INSTALL_DIR)/$(BINNAME)

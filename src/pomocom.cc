@@ -88,6 +88,14 @@ int main(int argc, char **argv)
 						// The argument starts with "-"
 						switch (arg[1])
 						{
+						case 'b':
+							// Start with short break section
+							state.current_section = SECTION_BREAK;
+							break;
+						case 'B':
+							// Start with long break section
+							state.current_section = SECTION_BREAK_LONG;
+							break;
 						case 'q':
 							// Quick pomo file setup
 							// usage: -q (mins of work section) (mins of break section) (mins of long break section)

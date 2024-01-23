@@ -22,19 +22,20 @@ namespace pomocom
 	{
 		if (state.current_section == SECTION_WORK)
 		{
-			if (state.breaks_until_long <= 0)
-			{
-				state.breaks_until_long = state.settings.breaks_until_long_reset;
-				base_switch_section(SECTION_BREAK_LONG);
-			}
-			else
-			{
-				--state.breaks_until_long;
-				base_switch_section(SECTION_BREAK);
-			}
+			// Break is starting
+			base_switch_section(
+				state.breaks_until_long == 0 ? SECTION_BREAK_LONG : SECTION_BREAK
+				);
 		}
 		else
+		{
+			// Break is ending
+			if (state.current_section == SECTION_BREAK)
+				--state.breaks_until_long;
+			else
+				state.breaks_until_long = state.settings.breaks_until_long_reset;
 			base_switch_section(SECTION_WORK);
+		}
 	}
 
 	// Sets the terminal title to a countdown timer

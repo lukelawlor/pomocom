@@ -150,13 +150,20 @@ Here is an example pomo file:
 
 * Usage
 ** Command Line Arguments
-
 *** Picking the Pomo File to Read on Startup
 Any argument that doesn't start with =-= is interpreted as the pomo file to read. The path of this file will be the said argument prefixed with the setting =paths.section= (set by default to =~/.config/pomocom/=) and suffixed with =.pomo=. If this argument starts with =./=, the pomo file will be searched for relative to the working directory.
 
 When *pomocom* is run with no specified pomo file, the pomo file =standard.pomo= in the program's config directory is read.
 
 *** Short Arguments
+=-b=
+
+This will start the pomodoro timer on a short break section.
+
+=-B=
+
+This will start the pomodoro timer on a long break section. 
+
 =-q (minutes of work section ) (minutes of break section) (minutes of long break section)=
 
 This stands for quick pomo file setup. It will make *pomocom* read the default pomo file and overwrite the lengths of each section with those specified.

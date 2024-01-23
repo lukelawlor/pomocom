@@ -9,6 +9,7 @@
 - [X] Split up contents in pomocom.cc
 - [X] Show pomo file name in output
 - [X] Set terminal title
+- [ ] Add argument -s to make pomocom startup at some time of the day
 
 * Optimization
 - [X] Change ncurses =getch()= behavior during pausing
